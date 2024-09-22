@@ -2,15 +2,14 @@
 // import { addEmploye } from "@/actions/employeAction/employeAction";
 import { handleEmploye } from "@/actions/employeAction/employeAction";
 import { getAllProjects } from "@/actions/siteProject/siteProjectAction";
-import Button from "@/components/Button/button";
 import ImageUpload from "@/components/ImageUpload/ImageUpload";
 import SearchableSelect from "@/components/SearchSelect/Select";
 import {
   DatePicker,
-  Label,
   RadioSection,
   TextFormInput,
 } from "@/components/fromInput/FormInput";
+import { Checkbox } from "@/components/ui/checkbox";
 import { COUNTRIES } from "@/data/data";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -20,8 +19,8 @@ const AddEmployee = () => {
   return (
     <div className="h-full w-full mt-8 bg-gray-50 relative overflow-y-auto lg:ml-64">
       <div className="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
-        <div className="max-w-xl mx-auto">
-          <div className="text-left">
+        <div className="ml-2">
+          <div className="">
             <h1 className="text-xl font-bold text-gray-800">
               New Employe Form
             </h1>
@@ -40,8 +39,10 @@ const AddEmployee = () => {
 
 export default AddEmployee;
 
-export const EmployeeForm = ({ data, onRequestClose }) => {
+export const EmployeeForm = ({ data, onRequestClose, onSucess }) => {
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
   const formRef = useRef(); // formRef.current is the form element
   const {
     control,
@@ -59,15 +60,15 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
       // lastName: data?.lastName,
       // email: data?.email,
       // phone: data?.phone,
-      // address: data?.eAddress?.address,
-      // streetAddress: data?.eAddress?.streetAddress,
-      // city: data?.eAddress?.city,
-      // zipCode: data?.eAddress?.zipCode,
-      // country: data?.eAddress?.country,
+      address: data?.eAddress?.address,
+      streetAddress: data?.eAddress?.streetAddress,
+      city: data?.eAddress?.city,
+      zipCode: data?.eAddress?.zipCode,
+      country: data?.eAddress?.country,
       // payRate: data?.payRate,
-      // accountName: data?.bankDetail?.accountName,
-      // accountNumber: data?.bankDetail?.accountNumber,
-      // sortCode: data?.bankDetail?.sortCode,
+      accountName: data?.bankDetail?.accountName,
+      accountNumber: data?.bankDetail?.accountNumber,
+      sortCode: data?.bankDetail?.sortCode,
       // employeNI: data?.employeNI,
       // startDate: data?.startDate,
       // eVisaExp: data?.eVisaExp ?? "",
@@ -77,21 +78,31 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
     },
   });
   const [siteProjects, setSiteProjects] = useState([]);
+  const checkBoxRef = useRef(null);
 
   // Handle data for Add and Edit data
   const create = async (addEditData) => {
-    console.log(addEditData);
-    if (images.length <= 0) return toast.error("Please upload image");
+    if (checked) {
+      const confim = confirm("Are you sure you want to add this employee?"); // eslint-disable-line
+      if (confim) {
+        console.log("yes");
+      } else {
+        console.log("no");
+      }
+    }
+    return;
+    // console.log(addEditData);
+    // if (images.length <= 0) return toast.error("Please upload image");
 
-    const bodyFormData = new FormData();
-    images.forEach((file) => {
-      bodyFormData.append("images", file);
-    });
-
+    // const bodyFormData = new FormData();
+    // images.forEach((file) => {
+    //   bodyFormData.append("images", file);
+    // })
+    setLoading(true);
     try {
       const id = data?._id;
-      const response = await handleEmploye(addEditData, bodyFormData, id);
-      if (!response.success) {
+      const response = await handleEmploye(addEditData, id, isChecked);
+      if (!response.status) {
         toast.error(response.message);
       } else {
         toast.success(response.message); // success message
@@ -100,12 +111,15 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
         setValue("country", "", { shouldValidate: true });
         if (id) {
           // if edit
+          onSucess();
           onRequestClose();
         }
       }
     } catch (error) {
       toast.error("Something went wrong"); // error message
       console.log(error.message);
+    } finally {
+      setLoading(false);
     }
   };
   const handleSelect = (selectedOption) => {
@@ -125,7 +139,7 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
     const fetchSiteProject = async () => {
       const response = await getAllProjects();
       //change key name like siteName to lable
-      if (!response.status) return alert(response.message);
+      if (!response.success) toast.error(response.message);
       setSiteProjects(
         JSON.parse(response.data).map((item) => ({
           code: item._id,
@@ -144,11 +158,11 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
       <form ref={formRef} onSubmit={handleSubmit(create)}>
         <div className="grid gap-4 lg:gap-6">
           {/* First & Last Name */}
-          <ImageUpload
+          {/* <ImageUpload
             images={images}
             setImages={setImages}
             formRef={formRef}
-          />
+          /> */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
             <TextFormInput
               {...register("firstName", {
@@ -279,7 +293,10 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
             <div>
               <div className="sm:col-span-3">
-                <Label labelText={"Employe Type"} />
+                {/* <Label labelText={"Employe Type"} /> */}
+                <span className="block mb-2 text-[14px] text-stone-800 font-medium">
+                  Employe Type
+                </span>
               </div>
               <div className="col-span-6 sm:col-span-9">
                 <div className="sm:flex">
@@ -405,25 +422,29 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
               errorMsg={errors.projectSite?.message}
               labelText={"Project Site"}
             />
-
-            <TextFormInput
-              {...register("payRate", {
-                required: "Pay Rate is required",
-                pattern: {
-                  value: /^([1-9][\d]{0,7})(\.\d{0,2})?$/,
-                  message: "Invalid format for pay rate.",
-                },
-              })}
-              cls={`${
-                errors.payRate?.type === "required" ? "border-red-500" : ""
-              }`}
-              errorMsg={errors.payRate?.message}
-              type="number"
-              step="any"
-              inputMode="decimal"
-              labelText="Pay Rate (£)"
-              placeholder="enter Payrate per hours "
-            />
+            <div>
+              <TextFormInput
+                {...register("payRate", {
+                  required: "Pay Rate is required",
+                  pattern: {
+                    value: /^([1-9][\d]{0,7})(\.\d{0,2})?$/,
+                    message: "Invalid format for pay rate.",
+                  },
+                })}
+                cls={`${
+                  errors.payRate?.type === "required" ? "border-red-500" : ""
+                }`}
+                errorMsg={errors.payRate?.message}
+                type="number"
+                step="any"
+                inputMode="decimal"
+                labelText="Pay Rate (£)"
+                placeholder="enter Payrate per hours "
+              />
+              {data?._id && (
+                <Check isChecked={isChecked} setIsChecked={setIsChecked} />
+              )}
+            </div>
           </div>
           {/* Start Date & Employe Role & EmployeNI */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
@@ -488,15 +509,43 @@ export const EmployeeForm = ({ data, onRequestClose }) => {
 
         {/* Submit Button */}
         <div className="mt-6 grid place-items-center">
-          <Button
+          <button
             type="submit"
-            cls={
-              "xl:w-96 w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-cyan-600 text-white hover:bg-cyan-700 disabled:opacity-50 disabled:pointer-events-none"
-            }
+            className={`xl:w-96 w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer`}
+            disabled={loading}
+          >{`${data ? "Edit" : "Add"} Employee`}</button>
+          {/* <Button
+            disabled={loading}
+            type="submit"
+            cls={`xl:w-96 w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer`}
             text={`${data ? "Edit" : "Add"} Employee`}
-          />
+          /> */}
         </div>
       </form>
+    </div>
+  );
+};
+
+const Check = ({ isChecked, setIsChecked }) => {
+  const handleOnChange = () => {
+    setIsChecked(!isChecked);
+  };
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox
+        id="terms"
+        checked={isChecked}
+        onCheckedChange={handleOnChange}
+      />
+      <label
+        htmlFor="terms"
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        {/*  we have to say that this is change in all old attendance data */}I
+        If you want Update all old attendance data
+        {/* Accept terms and conditions */}
+      </label>
     </div>
   );
 };

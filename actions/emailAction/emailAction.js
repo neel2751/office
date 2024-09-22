@@ -4,8 +4,9 @@ import nodemailer from "nodemailer";
 export const sendMail = async () => {
   const transporter = nodemailer.createTransport({
     host: "smtp.zoho.eu",
-    port: 587,
-    secure: false,
+    host: "smtp.office365.com",
+    port: 587, // or 465
+    secure: false, // or 'STARTTLS' or 'SSL' or 'TLS' or 'auto' (default)
     auth: {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,

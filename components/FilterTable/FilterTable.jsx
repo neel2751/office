@@ -42,12 +42,15 @@ const FilterTable = ({
     onPageChange({ ...filter, page: currentPage - 1 }); // send page to parent
   };
 
+  // Data limit options change function like [10,20,30,...,All];
   const handleChnage = async (event) => {
     const selectedOption = event.target.value;
     selectedOption === "All"
       ? onPageChange({ ...filter, limit: totalData, page: 1 }) // send page to parent
       : onPageChange({ ...filter, limit: selectedOption, page: 1 }); // send page to parent
   };
+
+  // PaymentType option change function like [All,Weekly,Monthly]
   const handleChnagePaymentType = async (event) => {
     const selectedOption = event.target.value;
     // selectedOption === "All"
@@ -66,7 +69,7 @@ const FilterTable = ({
         <div className="-m-1.5 overflow-x-auto">
           <div className="p-1.5 min-w-full inline-block align-middle">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              {option.length > 0 && (
+              {totalData > 0 && (
                 <div className="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 ">
                   {/* {children} */}
                   {/* <Search /> */}
@@ -96,13 +99,15 @@ const FilterTable = ({
                       </svg>
                     </div>
                   </div>
-                  <Select
-                    options={option}
-                    currentValue={filter.limit}
-                    cls={"w-20"}
-                    placeholder={"Filter"}
-                    onChange={handleChnage}
-                  />
+                  {option.length > 0 && (
+                    <Select
+                      options={option}
+                      currentValue={filter.limit}
+                      cls={"w-20"}
+                      placeholder={"Filter"}
+                      onChange={handleChnage}
+                    />
+                  )}
                   <Select
                     options={paymentTypes}
                     currentValue={optionFilter.paymentType}
@@ -220,7 +225,7 @@ export const FilterAttendanceTableHead = ({ attendanceData }) => {
         {tableHead.map((head, index) => (
           <th key={index} scope="col" className="px-6 py-3 text-start">
             <div className="flex items-center gap-x-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-800">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 {head.charAt(0).toLocaleUpperCase() + head.slice(1)}
               </span>
             </div>

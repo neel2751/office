@@ -31,7 +31,7 @@ export const TextFormInput = React.forwardRef(function TextFormInput(
           id={labelText}
           ref={ref}
           type={type}
-          className={`py-3 px-4 block w-full border text-[#292524] border-gray-200 rounded-lg text-sm focus:border-cyan-500 focus:ring-cyan-500 focus:border disabled:opacity-50 disabled:pointer-events-none
+          className={`py-3 px-4 block w-full border text-neutral-800 border-gray-200 rounded-lg text-sm focus:ring-cyan-600 focus:ring-2 disabled:opacity-50 disabled:pointer-events-none outline-none
         ${cls}`}
           placeholder={placeholder}
           value={value && value}
@@ -130,22 +130,41 @@ export const RadioSection = React.forwardRef(function RadioSection(
   ref
 ) {
   return (
-    <label
-      ref={ref}
-      htmlFor={value}
-      className="flex py-3 px-4 w-full border border-gray-200 shadow-sm -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg text-sm relative focus:z-10 focus:border-cyan-500 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none"
-      onChange={onChange}
-    >
-      <input
-        type={type}
-        name={name}
-        className="shrink-0 mt-0.5 border border-gray-200 rounded-full text-cyan-600 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none"
-        id={value}
-        value={value}
-        defaultChecked={checked}
-      />
-      <span className="text-sm text-gray-500 ms-3">{value}</span>
-    </label>
+    <>
+      {/* <label
+        ref={ref}
+        htmlFor={value}
+        className="flex py-3 px-4 w-full border border-gray-200 shadow-sm -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg text-sm relative focus:z-10 focus:border-cyan-500 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      >
+        <input
+          type={type}
+          name={name}
+          id={value}
+          value={value}
+          defaultChecked={checked}
+          className="peer hidden"
+          onChange={onChange}
+        />
+        <span className="w- h-4 inline-block border border-gray-200 rounded-full peer-checked:bg-cyan-800 peer-checked:border-cyan-400 peer-focus:ring-1 peer-focus:ring-cyan-400 mr-3 p-1"></span>
+        <span className="text-sm text-gray-500">{value}</span>
+      </label> */}
+      <label
+        ref={ref}
+        htmlFor={`${value}`}
+        className="flex py-3 px-4 w-full border border-gray-200 shadow-sm -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg text-sm relative focus:z-10 focus:border-cyan-500 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none"
+        onChange={onChange}
+      >
+        <input
+          type={type}
+          name={name}
+          className="checked:bg-emerald-400 checked:hover:bg-emerald-400 checked:active:bg-emerald-400 checked:focus:bg-emerald-400 focus:bg-emerald-400 focus:ring-1 focus:ring-emerald-400 shrink-0 mt-0.5 border border-gray-200 rounded-full text-cyan-600  disabled:opacity-50 disabled:pointer-events-none focus:outline-none"
+          id={value}
+          value={value}
+          defaultChecked={checked}
+        />
+        <span className="text-sm text-gray-500 ms-3">{value}</span>
+      </label>
+    </>
   );
 });
 
@@ -154,7 +173,7 @@ export const Label = ({ labelText }) => {
   return (
     <label
       htmlFor={labelText}
-      className="block mb-2 text-[14px] text-stone-800 font-medium"
+      className="block mb-2 text-[14px] text-neutral-700 font-medium"
     >
       {labelText}
     </label>
@@ -200,7 +219,7 @@ const CustomDateDesign = React.forwardRef(function CustomDateDesign(
   return (
     <>
       {labelText && (
-        <div className="block mb-2 text-[14px] text-stone-800 font-medium">
+        <div className="block mb-2 text-[14px] text-neutral-700 font-medium">
           {labelText}
         </div>
       )}
@@ -212,7 +231,7 @@ const CustomDateDesign = React.forwardRef(function CustomDateDesign(
           value={value}
           placeholder={placeholder}
           onClick={onchange}
-          className={`${cls} relative py-3 px-4 pe-9 flex text-black text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:border-cyan-500 focus:ring-cyan-500 before:absolute before:inset-0 before:z-[1]`}
+          className={`${cls} relative py-3 px-4 pe-9 flex text-neutral-800 text-nowrap w-full cursor-pointer bg-white border border-gray-200 rounded-lg text-start text-sm focus:ring-2 focus:ring-cyan-600 before:absolute before:inset-0 before:z-[1] outline-none`}
         />
         <div className="absolute top-1/2 end-3 text-black -translate-y-1/2">
           <svg

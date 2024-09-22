@@ -60,7 +60,7 @@ const RoleType = ({ page }) => {
     try {
       const response = await handleRoleType(editId, data);
       if (!response.success) alert(response.message);
-      toast.success("Role Type Added Successfully");
+      toast.success(response.message ?? "Role Type Added Successfully");
       onHandleCloseModal();
     } catch (error) {
       console.log(`Error: ${error}`);
@@ -135,6 +135,7 @@ const RoleType = ({ page }) => {
   const fetchData = async () => {
     try {
       const searchPro = await searchRoleTypeByKeywordNew(searchDebounce);
+      console.log(searchPro, "this is come from Role Type cleint component");
       if (searchPro.data) {
         setRoles(JSON.parse(searchPro.data));
       } else {
@@ -192,11 +193,12 @@ const RoleType = ({ page }) => {
           <div className="align-middle inline-block min-w-full">
             <div className="shadow overflow-hidden">
               <table className="table-fixed min-w-full divide-y divide-gray-200">
-                <TableHead>
+                {/* <TableHead>
                   {CONSTANTROLTYPETABLE.map((th) => (
                     <TableTH key={th.id} title={th.title} />
                   ))}
-                </TableHead>
+                </TableHead> */}
+                <TableTH data={CONSTANTROLTYPETABLE} />
                 <TableBody>
                   {roles &&
                     currentData.map((item) => (
@@ -213,14 +215,14 @@ const RoleType = ({ page }) => {
                         />
                         <td className="p-4 whitespace-nowrap space-x-2">
                           <TableAction
-                            svg={<PencilSquareIcon className="mr-1 h-5 w-5" />}
-                            btnName={`Edit ${page.split("/")[2]}`}
+                            svg={<PencilSquareIcon className="h-5 w-5" />}
+                            // btnName={`Edit ${page.split("/")[2]}`}
                             cls="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
                             handleClick={() => handleOpenModel(item)}
                           />
                           <TableAction
-                            svg={<TrashIcon className="mr-1 h-5 w-5" />}
-                            btnName={`Delete ${page.split("/")[2]}`}
+                            svg={<TrashIcon className=" h-5 w-5" />}
+                            // btnName={`Delete ${page.split("/")[2]}`}
                             cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
                             // handleClick={() => handleOpenModel(item)}
                             handleClick={() => handleModel(item._id, "Delete")} // delete

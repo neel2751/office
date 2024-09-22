@@ -36,12 +36,18 @@ import InfoCard from "@/components/InfoCard/infoCard";
 import EmptyState from "@/components/EmptyState/EmptyState";
 import FilterTableLine from "@/components/FilterTable/FilterTableLine";
 import ImageUpload from "@/components/ImageUpload/ImageUpload";
+import { ComboboxDemo } from "@/components/ComboBox";
 
 const DashBoard = () => {
-  return <FilterTableLine />;
+  return (
+    <>
+      {/* <FilterTableLine /> */}
+      <InfoCard />
+      <ComboboxDemo />
+    </>
+  );
   // return <ChnagePassword />;
   // return <FilterTable />;
-  // return <InfoCard />;
   // return <EmptyState />;
   // return <AddOfficeRole />;
 };

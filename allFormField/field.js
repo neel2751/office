@@ -223,6 +223,10 @@ export const CONSTANTSITETABLE = [
 
 export const CONSTANTEMPLOYETABLE = [
   {
+    id: 1,
+    title: "id",
+  },
+  {
     id: 2,
     title: "Name",
   },
@@ -282,6 +286,10 @@ export const CONSTANTATTENDANCETABLE = [
     title: "Extra Hours",
   },
   {
+    id: 10,
+    title: "Note",
+  },
+  {
     id: 6,
     title: "Total Hour",
   },
@@ -327,6 +335,10 @@ export const CONSTANTOFFICEEMPLOYEE = [
   {
     id: 7,
     title: "StartDate",
+  },
+  {
+    id: 7,
+    title: "End Date",
   },
   {
     id: 8,
@@ -436,6 +448,9 @@ export const OFFICEFIELD = [
     labelText: "Password",
     type: "password",
     placeholder: "******",
+    helperText:
+      "*if  you want to change password, please enter New password, OtherWise leave as it is",
+    size: true,
     validationOptions: {
       required: "password is required",
       minLength: {
@@ -451,6 +466,15 @@ export const OFFICEFIELD = [
     placeholder: "Start Date",
     validationOptions: {
       required: "Start Date is required",
+    },
+  },
+  {
+    name: "endDate",
+    labelText: "End Date",
+    type: "date",
+    placeholder: "Visa End Date",
+    validationOptions: {
+      required: "End Date is required",
     },
   },
 ];

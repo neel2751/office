@@ -129,7 +129,7 @@ export const ReactHookForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
       <div className="grid grid-cols-6 gap-6">
         {fields.map((ifield, index) => (
           <div

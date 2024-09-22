@@ -3,13 +3,14 @@ import { MENU, getMenu } from "@/data/data";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
-import { FooterNav } from "../ChangePassword/ChnagePassword";
+import NavFoot from "./navFoot";
 
 const SideBar = ({ isSideBarOpen }) => {
   const pathName = usePathname();
-  const { name } = getMenu(pathName);
+  // if our path is dynamic , we need to get the menu item that matches the path
+  const path = pathName.split("/", 3).join("/");
+  const { name } = getMenu(path);
   const { data } = useSession();
   const role = data?.user?.role;
   const userMenu = MENU.filter((item) => item.role === role);
@@ -63,63 +64,7 @@ const SideBar = ({ isSideBarOpen }) => {
                   />
                 ))}
               </ul>
-              <div className="space-y-2 pt-2">
-                <a
-                  href=""
-                  className="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2"
-                >
-                  <svg
-                    className="w-5 h-5 text-gray-500 flex-shrink-0 group-hover:text-gray-900 transition duration-75"
-                    aria-hidden="true"
-                    focusable="false"
-                    data-prefix="fas"
-                    data-icon="gem"
-                    role="img"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 512 512"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M378.7 32H133.3L256 182.7L378.7 32zM512 192l-107.4-141.3L289.6 192H512zM107.4 50.67L0 192h222.4L107.4 50.67zM244.3 474.9C247.3 478.2 251.6 480 256 480s8.653-1.828 11.67-5.062L510.6 224H1.365L244.3 474.9z"
-                    ></path>
-                  </svg>
-                  <span className="ml-4">Upgrade to Pro</span>
-                </a>
-                <a
-                  href="https://flowbite.com/docs/getting-started/introduction/"
-                  target="_blank"
-                  className="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2"
-                >
-                  <svg
-                    className="w-6 h-6 text-gray-500 flex-shrink-0 group-hover:text-gray-900 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                    <path
-                      fillRule="evenodd"
-                      d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                  <span className="ml-3">Documentation</span>
-                </a>
-                <a
-                  href="https://flowbite.com/docs/components/alerts/"
-                  target="_blank"
-                  className="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2"
-                >
-                  <svg
-                    className="w-6 h-6 text-gray-500 flex-shrink-0 group-hover:text-gray-900 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
-                  </svg>
-                  <span className="ml-3">Components</span>
-                </a>
+              {/* <div className="space-y-2 pt-2">
                 <button
                   onClick={() => signOut()}
                   className="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2"
@@ -136,11 +81,11 @@ const SideBar = ({ isSideBarOpen }) => {
                       clipRule="evenodd"
                     ></path>
                   </svg>
-                  <span className="ml-3">Help</span>
+                  <span className="ml-3">SignOut</span>
                 </button>
-              </div>
+              </div> */}
             </div>
-            <FooterNav isOpen={isOpen} setIsOpen={setIsOpen} data={data} />
+            <NavFoot isOpen={isOpen} setIsOpen={setIsOpen} data={data} />
           </div>
         </div>
       </aside>

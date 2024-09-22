@@ -16,7 +16,6 @@ const FilterTableLine = () => {
     try {
       let files = e.target.files;
       setUploading(true);
-
       if (
         [...allowedFileTypes.map((type) => type.toLowerCase())].indexOf(
           files[0]?.type.toLowerCase()

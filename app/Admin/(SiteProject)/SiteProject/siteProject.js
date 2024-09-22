@@ -1,6 +1,6 @@
 "use client";
 import NewFormModel from "@/components/ModelForm/FormModel";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import Search from "@/components/Search/search";
 import { CONSTANTSITETABLE, SITEFIELD as fields } from "@/allFormField/field";
 import {
@@ -16,8 +16,6 @@ import {
   exportCSVFile,
 } from "@/actions/commonAction/commonAction";
 import {
-  TableHeading,
-  TableHead,
   TableTH,
   TableBody,
   TableData,
@@ -25,8 +23,14 @@ import {
   TableAction,
   TableSiteStatus,
 } from "@/components/Table/Table";
+import { Breadcrumbs } from "@/components/ChangePassword/ChnagePassword";
+import { toast } from "react-toastify";
+import {
+  getEmployeeCostForSite,
+  totalCostOfSite,
+} from "@/actions/assignSiteAction/assignSiteAction";
 
-const SiteProject = () => {
+const SiteProject = ({ page }) => {
   const [isOpen, setIsOpen] = useState(false); // OPEN MODEL STATE
   const [editId, setEditId] = useState(""); // EDIT ID FOR OPEN MODEL
   const [search, setSearch] = useState(); // Main Search Pass into Debounce
@@ -35,6 +39,12 @@ const SiteProject = () => {
   const [currentPage, setCurrentPage] = useState(1); //  CURRENT PAGE NUMBER
   const [initialValue, setInitialValue] = useState(null); // INITIAL VALUE FROM API
   const [resetFlag, setResetFlag] = useState(false);
+
+  const getData = async (siteId) => {
+    console.log(siteId);
+    const response = await totalCostOfSite(siteId);
+    console.log(response); // This is Total Cost of Site
+  };
 
   let i = 1; // FOR ID GENERATION
 
@@ -52,32 +62,25 @@ const SiteProject = () => {
 
   // Handle Add Site Project
   const handleSubmit = async (data) => {
-    if (editId) {
-      const response = await updateSiteProjectById(editId, data);
-      if (response.status) {
+    try {
+      if (editId) {
+        const response = await updateSiteProjectById(editId, data);
+        if (!response.success) return toast.error(response.message);
         onHandleCloseModal();
-      }
-    } else {
-      const response = await addSiteProject(data);
-      if (response.status === 201) {
-        onHandleCloseModal();
+        toast.success(response.message);
+        fetchData();
       } else {
-        alert("Somthing  went wrong please try again later");
-      }
-    }
-  };
-  // Handle Active /Inactive Status
-  const handleActiveStatus = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to Chnage Status This Site?"
-    );
-    if (confirmed) {
-      const response = await siteUpdateStatus(id); // Call the onDelete function provided by the parent component
-      if (response.status) {
+        const response = await addSiteProject(data);
+        if (!response.success) return toast.error(response.message);
+        onHandleCloseModal();
+        toast.success(response.message);
         fetchData();
       }
+    } catch (error) {
+      toast.error("Something went wrong");
     }
   };
+
   const handleResetButtonClick = () => {
     setResetFlag(!resetFlag);
   };
@@ -96,29 +99,62 @@ const SiteProject = () => {
     setEditId("");
   };
   // FETCH ALL DATA WITH USER SEARCH OR ALL DATA WITH  PAGINATION
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      // time
+      const responsetime = performance.now();
       const searchPro = await searchSiteProjectByKeywordNew(searchDebounce);
+      if (!searchPro.success) return toast.error("No Data Found"); // Return error message if no data found
       if (searchPro.data) {
         setSiteProjects(JSON.parse(searchPro.data));
-      } else {
-        console.error("Invalid data structure:", searchPro);
       }
+      console.log("time", performance.now() - responsetime); // time
     } catch (error) {
-      console.error("Error fetching or searching projects:", error);
+      console.log("Error fetching data", error.message); // Log error message
+      if (error.message === "Network Error") {
+        // Check if network error
+        toast.error("Network Error"); // Display network error message
+      } else {
+        // If not network error
+        toast.error("Something went wrong"); // Display generic error message
+      }
+    }
+  });
+
+  // Handle Active /Inactive Status
+  const handleActiveStatus = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to Chnage Status This Site?"
+    );
+    if (confirmed) {
+      try {
+        const response = await siteUpdateStatus(id); // Call the onDelete function provided by the parent component
+        if (!response.success) return toast.error(response.message); // Return error message if response is not successful
+        toast.success(response.message); // Display a success message
+        fetchData();
+      } catch (error) {
+        toast.error("Something went wrong"); // Display an error message
+      }
     }
   };
   // Get all projects data
   useEffect(() => {
     fetchData(); // Call The Function
-  }, [isOpen, searchDebounce, resetFlag]);
+  }, [searchDebounce]);
 
   return (
     <>
       {/* Header */}
+      <div>
+        <Breadcrumbs
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Site Projects", href: { page }, active: true },
+          ]}
+        />
+      </div>
       <div className="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div className="mb-1 w-full">
-          <TableHeading title="All Project" slug="SiteProject" />
           <div className="sm:flex">
             <div className="sm:flex items-center sm:divide-x sm:divide-gray-100 mb-3 sm:mb-0">
               <Search onChange={setSearch} placeholder="Search Projects" />
@@ -176,11 +212,7 @@ const SiteProject = () => {
           <div className="align-middle inline-block min-w-full">
             <div className="shadow overflow-hidden">
               <table className="table-fixed min-w-full divide-y divide-gray-200">
-                <TableHead>
-                  {CONSTANTSITETABLE.map((th) => (
-                    <TableTH key={th.id} title={th.title} />
-                  ))}
-                </TableHead>
+                <TableTH data={CONSTANTSITETABLE} />
                 <TableBody>
                   {siteProjects &&
                     currentData.map((item) => (
@@ -199,7 +231,7 @@ const SiteProject = () => {
                           <TableAction
                             svg={
                               <svg
-                                className="mr-1 h-5 w-5"
+                                className="h-5 w-5"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -212,14 +244,13 @@ const SiteProject = () => {
                                 ></path>
                               </svg>
                             }
-                            btnName="Edit Site"
                             cls="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
                             handleClick={() => handleOpenModel(item)}
                           />
                           <TableAction
                             svg={
                               <svg
-                                className="mr-1 h-5 w-5"
+                                className="h-5 w-5"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -231,9 +262,26 @@ const SiteProject = () => {
                                 ></path>
                               </svg>
                             }
-                            btnName="Delete Site"
                             cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
                             handleClick={() => handleOpenModel(item)}
+                          />
+                          <TableAction
+                            svg={
+                              <svg
+                                className="h-5 w-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                  clipRule="evenodd"
+                                ></path>
+                              </svg>
+                            }
+                            cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
+                            handleClick={() => getData(item._id)}
                           />
                         </td>
                       </tr>

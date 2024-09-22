@@ -64,7 +64,7 @@ export const handleRoleType = async (id, roleData) => {
       // revalidatePath("/"); // revalidate the path
       const data = {
         success: true,
-        message: `Successfully Upadted ${role.roleName}'s Information`,
+        message: `Successfully Upadted Information`,
       };
       return data;
     } else {

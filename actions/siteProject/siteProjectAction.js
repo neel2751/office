@@ -1,9 +1,9 @@
 "use server";
-// const json2csv = require("json2csv").parse;
-// const fs = require("fs");
 import { connect } from "@/dbConfig/dbConfig";
 import ProjectSiteModel from "@/models/siteProjectModel";
+// import redis from "@/lib/redis";
 
+// const redis = new Redis("redis://localhost:6379"); // Redis connection
 // # ADD SITE  PROJECT DATA TO DATABASE
 export const addSiteProject = async (data) => {
   const { siteName, siteAddress, status, siteType, siteDescription } = data;
@@ -17,14 +17,20 @@ export const addSiteProject = async (data) => {
       siteDescription,
     });
     const saveSite = await addSite.save();
-
     const data = {
-      siteName: saveSite.siteName,
-      status: 201,
-      message: "Add Site Successfully...",
+      // siteName: saveSite.siteName,
+      success: true,
+      message: "Site Project Added Successfully",
     };
-    return data;
+    if (saveSite) {
+      // delete  data from redis
+      // await redis.del(`search:undefined`);
+      return data;
+    } else {
+      return { success: false, message: "Failed to add site project" };
+    }
   } catch (error) {
+    return { success: false, message: "Something  went wrong" };
     return error.message;
   }
 };
@@ -37,16 +43,16 @@ export const getAllProjects = async () => {
     if (!projects || projects.length === 0) {
       return { status: false, message: "No Data Found" };
     } else {
-      const projectData = JSON.stringify(projects);
+      // const projectData = JSON.stringify(projects);
       const data = {
-        status: true,
+        success: true,
         count: projects.length,
-        data: projectData,
+        data: JSON.stringify(projects),
       };
       return data;
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return { status: false, message: "Server Error" };
   }
 };
@@ -58,47 +64,51 @@ export const siteUpdateStatus = async (id) => {
       _id: id,
     });
     if (!siteProject) {
-      return new Response("Team Member Not Found", { status: 404 });
+      return { success: false, message: "Project Not Found" };
     } else {
       const updatedStatus = !siteProject.isActive;
       siteProject = await ProjectSiteModel.updateOne(
         { _id: id },
         { $set: { isActive: updatedStatus } }
       );
-      const data = {
-        status: 201,
-        message: "The  Status of the Site Project has been Updated",
-      };
-      return data;
+      if (siteProject.modifiedCount === 1) {
+        return {
+          success: true,
+          message: "Project Status Updated Successfully",
+        };
+      } else {
+        return { success: false, message: "Failed to update project status" };
+      }
     }
   } catch (err) {
+    return { success: false, message: "Server Error" }; // return error message
     console.error(err);
   }
 };
 // # UPDATE A SPECIFIC SITE PROJECT INFORMATION BY ID
 export const updateSiteProjectById = async (id, data) => {
-  console.log(data);
   const { siteName, siteAddress, status, siteType, siteDescription } = data;
   // if (!Object.keys(siteproject).length) throw new Error("No Data Provided");
-  if (!id) throw new Error("ID not provided");
+  if (!id) return { success: false, message: "Site Project Not Found" }; // return error message
   try {
     await connect();
     // this is the find by id get the particular data from id
     // let index = allData.findIndex((x) => x._id == id);
     let project = await ProjectSiteModel.findById(id);
-    if (!project) throw new Error(`Invalid Id`);
-    await ProjectSiteModel.updateOne(
+    if (!project) return { success: false, message: "Project Not Found" }; // return error message
+    const updatedProject = await ProjectSiteModel.updateOne(
       { _id: id },
       { siteName, siteAddress, status, siteType, siteDescription }
     );
-    const data = {
-      status: 200,
-      message: `Successfully Upadted ${project.siteName}'s Information`,
-    };
-    return data;
+    if (updatedProject.modifiedCount === 1) {
+      // await redis.del(`search:undefined`);
+      // if the data is updated successfully
+      return { success: true, message: "Project Updated Successfully" }; // return success message
+    } else {
+      return { success: false, message: "Failed to update project" }; // return error message
+    }
   } catch (e) {
-    console.log(e);
-    return e.message;
+    return { success: false, message: "Server Error" }; // return error message
   }
 };
 // # DELETE A SPECIFIC SITE PROJECT BY ID
@@ -122,8 +132,10 @@ export const searchSiteProjectByKeyword = async (keyword) => {
       $or: [
         { siteName: { $regex: keyword, $options: "i" } },
         { typeOfTheProject: { $regex: keyword, $options: "i" } },
+        { siteAddress: { $regex: keyword, $options: "i" } },
       ],
     });
+    console.log(projects); // return all the projects
     if (!projects || projects.length === 0) {
       throw new Error("No project available");
     } else {
@@ -158,6 +170,12 @@ export const getAllProjectsFromDB = () => {
 export const searchSiteProjectByKeywordNew = async (keyword) => {
   try {
     let results = [];
+    // const cacheKey = `search:${keyword}`;
+    // const cachedData = await redis.get(cacheKey);
+
+    // if (cachedData) {
+    //   return JSON.parse(cachedData);
+    // }
     await connect();
     if (keyword) {
       // Construct the query based on whether a search term is provided
@@ -166,19 +184,27 @@ export const searchSiteProjectByKeywordNew = async (keyword) => {
             $or: [
               { siteName: { $regex: String(keyword), $options: "i" } },
               { typeOfTheProject: { $regex: String(keyword), $options: "i" } },
+              { siteAddress: { $regex: String(keyword), $options: "i" } }, // added this line
             ],
           }
         : {};
 
       const data = await ProjectSiteModel.find(query);
-      return (results = {
-        data: JSON.stringify(data),
-      });
+      // if (data.length === 0 || !data) return;
+      results = {
+        success: true,
+        count: data.length, // count of results
+        data: JSON.stringify(data), // actual results
+      };
+      // await redis.set(cacheKey, JSON.stringify(results), "EX", 1800); //cache for 30 minute
+      return results; // return the results
     } else {
       results = await getAllProjects();
+      // await redis.set(cacheKey, JSON.stringify(results), "EX", 1800); //cache for 30 minute
     }
     return results;
   } catch (error) {
+    return { success: false, message: "Something  went wrong" }; // return error message
     console.error(error);
     return {
       error: error.message,

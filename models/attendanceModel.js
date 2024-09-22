@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const employeAttendanceSchema = new mongoose.Schema({
   employeeId: {
     type: mongoose.Types.ObjectId,
-    ref: "Employee",
+    ref: "Employe",
     required: true,
   },
   hours: {
@@ -59,6 +59,7 @@ const employeAttendanceSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  note: { type: String, required: false },
 });
 // Define virtual property for totalPay
 // employeAttendanceSchema.virtual("totalPay").get(function () {
@@ -69,6 +70,11 @@ const attendanceSchema = new mongoose.Schema(
     attendanceDate: {
       type: Date,
       required: true,
+    },
+    siteId: {
+      type: mongoose.Types.ObjectId,
+      ref: "ProjectSite",
+      required: true, // Ensure siteId is mandatory
     },
     employeAttendance: {
       // Student's ID who is attending the class

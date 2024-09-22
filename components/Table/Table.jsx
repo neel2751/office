@@ -710,14 +710,21 @@ export function TableHead({ children }) {
 }
 
 // # THIS IS TABLE <th> DATA FOR  THE ABOVE USER ROW EXAMPLE
-export function TableTH({ title }) {
+export function TableTH({ data }) {
   return (
-    <th
-      scope="col"
-      className="p-4 text-left text-xs font-medium text-gray-400 uppercase"
-    >
-      {title}
-    </th>
+    <thead className="bg-gray-50">
+      <tr>
+        {data?.map((th) => (
+          <th
+            key={th.id}
+            scope="col"
+            className="p-4 text-left text-xs font-medium text-gray-400 uppercase"
+          >
+            {th.title}
+          </th>
+        ))}
+      </tr>
+    </thead>
   );
 }
 // # THIS IS THE MAIN TABLE BODY
@@ -727,56 +734,45 @@ export function TableBody({ children }) {
   );
 }
 // # TABLE DATA WITH TITLE or SUBTITLE
-export function TableData({ title, subTitle, onclick }) {
+export function TableData({ title, subTitle, onclick, className }) {
   return (
-    // <tr className="hover:bg-gray-100">
-    <>
-      {subTitle ? (
-        <td
-          onClick={onclick}
-          className="p-4 flex items-center whitespace-nowrap space-x-6 mr-12 lg:mr-0"
-        >
-          <div className="text-sm font-normal text-gray-500">
-            <div className="text-sm font-medium text-gray-800">{title}</div>
-            <div
-              className={`${
-                subTitle ? "block" : "hidden"
-              }text-sm font-normal text-gray-500`}
-            >
-              {subTitle}
-            </div>
-          </div>
-        </td>
-      ) : (
-        <td
-          onClick={onclick}
-          className="p-4 whitespace-nowrap text-sm font-medium text-gray-800"
+    <td
+      onClick={onclick}
+      className="p-4 whitespace-nowrap space-x-6 mr-12 lg:mr-0"
+    >
+      <div className="flex flex-col">
+        <div
+          title={title}
+          className={`text-sm font-medium text-neutral-800 truncate max-w-[7rem] ${className} ${
+            subTitle ? "cursor-pointer" : "cursor-default"
+          }`}
         >
           {title}
-        </td>
-      )}
-    </>
+        </div>
+        {subTitle && <div className="text-sm text-neutral-600">{subTitle}</div>}
+      </div>
+    </td>
   );
 }
 // # TABLE STATUS
 export function TableDataStatus({ isActive, handleClick }) {
+  const isActiveClass = isActive
+    ? "bg-teal-100 text-teal-800"
+    : "bg-rose-100 text-rose-800";
+  const isActiveBg = isActive ? "bg-teal-800" : "bg-rose-800";
   return (
     <td className=" cursor-pointer" onClick={handleClick}>
-      {isActive ? (
-        <div className="inline-flex text-sm items-center bg-teal-100 text-teal-800 py-1.5 px-2.5 rounded-full">
-          <div className="h-2 w-2 rounded-full text-sm bg-gray-800 mr-2"></div>
-          Active
-        </div>
-      ) : (
-        <div className="inline-flex items-center text-sm bg-gray-100 text-gray-800 py-1.5 px-2.5 rounded-full">
-          <div className="h-2 w-2 rounded-full text-sm bg-gray-800 mr-2"></div>
-          Inactive
-        </div>
-      )}
+      <div
+        className={`inline-flex text-sm items-center py-1.5 px-2.5 rounded-full ${isActiveClass}`}
+      >
+        <div
+          className={`h-2 w-2 rounded-full text-sm mr-2 ${isActiveBg}`}
+        ></div>
+        {isActive ? "Active" : "Inactive"}
+      </div>
     </td>
   );
 }
-
 // # TABLE SITE STATUS LIKE COMPLETED, ON HOLD, ACTIVE, NO STATUS
 export function TableSiteStatus({ title }) {
   let statusColorClass = "";
@@ -818,11 +814,11 @@ export function TableAction({ btnName, cls, link, handleClick, svg }) {
           onClick={handleClick}
           type="button"
           data-modal-toggle="user-modal"
-          className={`${cls} font-medium rounded-lg text-sm inline-flex items-center px-3 py-2 text-center`}
+          className={`${cls} font-medium rounded-lg text-sm inline-flex items-center px-2.5 py-2 text-center`}
           //   className="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm inline-flex items-center px-3 py-2 text-center"
         >
           {svg}
-          {btnName}
+          {btnName && btnName}
         </button>
       )}
     </>

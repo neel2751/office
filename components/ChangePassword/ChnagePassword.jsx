@@ -16,13 +16,14 @@ import {
   employeVisaExpire,
   getEmpSummaryData,
 } from "@/actions/dashboardAction/dashboardAction";
+import Link from "next/link";
 
 const ChnagePassword = () => {
   return (
     <div className="md:mt-3 p-5">
       {/* <SideDrawer /> */}
-      <EmployeProfile />
-      <UserTable />
+      {/* <EmployeProfile /> */}
+      {/* <UserTable /> */}
       {/* <AccountDropdown /> */}
       {/* <ProfileNav /> */}
       {/* <OpenModelButton /> */}
@@ -33,6 +34,7 @@ const ChnagePassword = () => {
       {/* <TwoStep /> */}
       {/* <SessionCard /> */}
       {/* <DangerZone /> */}
+      <WeekCalendarWithListEvent />
     </div>
   );
 };
@@ -1897,217 +1899,6 @@ const SwitchAccount = () => {
   );
 };
 
-export const FooterNav = ({ isOpen, setIsOpen, data }) => {
-  return (
-    <footer
-      onClick={() => setIsOpen(!isOpen)}
-      className="block border-gray-200 bg-white border-t bottom-0 left-0 right-0 absolute"
-    >
-      {/* <!-- Project Dropdown --> */}
-      <div className="hs-dropdown relative flex [--auto-close:inside] ">
-        {/* <!-- Project Button --> */}
-        <button
-          id="hs-pro-dnwpd"
-          type="button"
-          className="w-full items-center text-gray-800 align-middle text-start py-3 px-7 inline-flex focus:outline-none focus:bg-gray-100"
-        >
-          <svg
-            className="flex-shrink-0 size-8"
-            width="284"
-            height="144"
-            viewBox="0 0 284 144"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g clipPath="url(#clip0_468_359)">
-              <path
-                d="M103.343 143.494C111.263 138.787 118.629 133.525 124.832 126.824C130.979 120.234 136.13 112.812 139.84 104.228C140.893 104.173 141.945 104.062 142.942 104.007C149.975 103.896 157.064 104.339 164.042 103.563C182.042 101.625 194.447 83.349 190.404 65.2943C187.303 51.5596 174.897 41.0369 161.162 40.7046C154.406 40.5385 147.705 40.6493 140.726 40.6493C133.527 23.9238 122.173 11.0198 106.279 1.71555C107.22 1.49402 107.608 1.32788 107.995 1.32788C126.77 1.32788 145.489 0.829436 164.208 1.49402C183.094 2.15861 198.933 10.4659 211.726 24.8099C213.942 27.3021 215.88 30.0713 217.985 32.6742C211.173 45.1906 207.517 58.15 207.517 72.2725C207.517 86.395 211.062 99.3544 218.04 112.092C215.437 115.305 212.834 118.683 210.01 121.784C201.315 131.31 190.57 137.679 178.386 141.002C172.294 142.663 165.815 143.328 159.501 143.439C141.502 143.771 123.503 143.549 105.503 143.549C104.783 143.66 104.063 143.549 103.343 143.494Z"
-                fill="#DD2428"
-              />
-              <path
-                d="M284 1.16113V40.6487C274.53 41.1471 266.61 44.9131 260.574 52.2235C256.088 57.651 253.928 64.0199 253.485 71.2196C252.598 85.2867 263.453 103.286 283.945 104.283V143.272C267.109 144.324 242.408 135.297 227.51 113.476C210.508 88.665 211.449 56.6541 225.572 34.4458C239.196 12.9575 258.801 2.15801 284 1.16113Z"
-                fill="#444750"
-              />
-              <path
-                d="M137.957 63.9097H99.245C96.642 54.1625 90.8269 47.1289 82.0211 42.8091C75.6521 39.7077 68.8955 39.32 62.0281 40.8154C49.0133 43.6398 38.6568 57.0977 38.4353 71.3863C38.2138 85.1765 47.9056 98.3575 61.3081 102.013C69.3386 104.173 77.2582 103.342 84.5133 98.9667C91.6022 94.7023 96.4758 88.4994 98.968 80.4136H137.736C136.573 104.671 115.14 137.568 77.6459 142.165C37.6046 147.094 1.99379 116.301 0.110798 75.0416C-1.88296 33.2834 30.4049 -0.499785 71.3877 0.497095C110.432 1.49398 136.296 34.5572 137.957 63.9097Z"
-                fill="#444750"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_468_359">
-                <rect
-                  width="284"
-                  height="143.218"
-                  fill="white"
-                  transform="translate(0 0.496094)"
-                />
-              </clipPath>
-            </defs>
-          </svg>
-          <span className="block ms-3">
-            <span className="block text-gray-800 font-medium text-sm">
-              {data?.user?.name}
-            </span>
-            <span className="block text-gray-500 text-sm">
-              cdc.construction
-            </span>
-          </span>
-          <svg
-            className="flex-shrink-0 size-3 ms-auto"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m7 15 5 5 5-5"></path>
-            <path d="m7 9 5-5 5 5"></path>
-          </svg>
-        </button>
-        {/* <!-- End Project Button --> */}
-
-        {/* <!-- Dropdown --> */}
-        <div
-          className={`${
-            isOpen ? "opacity-100 block" : "opacity-0 hidden"
-          } transition-[opacity,margin] duration block bg-white rounded-xl z-[80] shadow-[0_10px_40px_10px_rgba(0,0,0,0.08)]`}
-          style={{
-            position: "fixed",
-            inset: "auto auto 0px 0px",
-            margin: "0px",
-            transform: "translate3d(15px,-70px,0px)",
-          }}
-        >
-          <div className="p-1 space-y-0.5">
-            {/* <!-- Item --> */}
-            <a
-              className="py-2 block w-full text-start bg-gray-100 hover:bg-gray-200 rounded-lg px-2 focus:outline-none focus:bg-gray-100"
-              href="#"
-            >
-              <div className="flex gap-x-2">
-                <div className="self-center">
-                  <svg
-                    className="flex-shrink-0 items-center text-gray-500 size-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"></path>
-                  </svg>
-                </div>
-                <div className=" self-center -ms-1">
-                  <svg
-                    className="flex-shrink-0 items-center size-8"
-                    width="284"
-                    height="144"
-                    viewBox="0 0 284 144"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <g clipPath="url(#clip0_468_359)">
-                      <path
-                        d="M103.343 143.494C111.263 138.787 118.629 133.525 124.832 126.824C130.979 120.234 136.13 112.812 139.84 104.228C140.893 104.173 141.945 104.062 142.942 104.007C149.975 103.896 157.064 104.339 164.042 103.563C182.042 101.625 194.447 83.349 190.404 65.2943C187.303 51.5596 174.897 41.0369 161.162 40.7046C154.406 40.5385 147.705 40.6493 140.726 40.6493C133.527 23.9238 122.173 11.0198 106.279 1.71555C107.22 1.49402 107.608 1.32788 107.995 1.32788C126.77 1.32788 145.489 0.829436 164.208 1.49402C183.094 2.15861 198.933 10.4659 211.726 24.8099C213.942 27.3021 215.88 30.0713 217.985 32.6742C211.173 45.1906 207.517 58.15 207.517 72.2725C207.517 86.395 211.062 99.3544 218.04 112.092C215.437 115.305 212.834 118.683 210.01 121.784C201.315 131.31 190.57 137.679 178.386 141.002C172.294 142.663 165.815 143.328 159.501 143.439C141.502 143.771 123.503 143.549 105.503 143.549C104.783 143.66 104.063 143.549 103.343 143.494Z"
-                        fill="#DD2428"
-                      />
-                      <path
-                        d="M284 1.16113V40.6487C274.53 41.1471 266.61 44.9131 260.574 52.2235C256.088 57.651 253.928 64.0199 253.485 71.2196C252.598 85.2867 263.453 103.286 283.945 104.283V143.272C267.109 144.324 242.408 135.297 227.51 113.476C210.508 88.665 211.449 56.6541 225.572 34.4458C239.196 12.9575 258.801 2.15801 284 1.16113Z"
-                        fill="#444750"
-                      />
-                      <path
-                        d="M137.957 63.9097H99.245C96.642 54.1625 90.8269 47.1289 82.0211 42.8091C75.6521 39.7077 68.8955 39.32 62.0281 40.8154C49.0133 43.6398 38.6568 57.0977 38.4353 71.3863C38.2138 85.1765 47.9056 98.3575 61.3081 102.013C69.3386 104.173 77.2582 103.342 84.5133 98.9667C91.6022 94.7023 96.4758 88.4994 98.968 80.4136H137.736C136.573 104.671 115.14 137.568 77.6459 142.165C37.6046 147.094 1.99379 116.301 0.110798 75.0416C-1.88296 33.2834 30.4049 -0.499785 71.3877 0.497095C110.432 1.49398 136.296 34.5572 137.957 63.9097Z"
-                        fill="#444750"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_468_359">
-                        <rect
-                          width="284"
-                          height="143.218"
-                          fill="white"
-                          transform="translate(0 0.496094)"
-                        />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </div>
-
-                <div className="grow">
-                  <p className="text-sm text-gray-800 font-medium">
-                    {data?.user?.role.toLowerCase() || "Admin"}
-                  </p>
-                  <p className="text-sm text-gray-500 ">cdc.construction</p>
-                </div>
-                <div className="ms-auto self-center">
-                  <svg
-                    className="flex-shrink-0 text-gray-800 size-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-              </div>
-            </a>
-            {/* <!-- End Item --> */}
-          </div>
-
-          <div className="p-1 border-gray-200 border-t">
-            <button
-              type="button"
-              className="w-full flex items-center hover:bg-gray-200 text-gray-800 text-sm py-2 px-3 rounded-lg gap-x-3"
-            >
-              <svg
-                className="flex-shrink-0 size-4"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 12h8"></path>
-                <path d="M12 8v8"></path>
-              </svg>
-              Add another project
-            </button>
-          </div>
-
-          <div className="p-1 border-gray-200 border-t">
-            <button
-              type="button"
-              className="w-full flex items-center text-gray-800 text-sm py-2 px-3 rounded-lg gap-x-2 hover:bg-gray-200"
-            >
-              Sign out
-              <span className="ms-auto text-gray-500 text-xs">
-                {data?.user?.email}
-              </span>
-            </button>
-          </div>
-        </div>
-        {/* <!-- End Dropdown --> */}
-      </div>
-      {/* <!-- End Project Dropdown --> */}
-    </footer>
-  );
-};
-
 const AccountDropdown = () => {
   return (
     <div className="h-[38px]">
@@ -3783,6 +3574,364 @@ export const UserTable = () => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+export const Breadcrumbs = ({ breadcrumbs }) => {
+  return (
+    <div className="sticky top-0 inset-x-0 bg-white border-y px-4 sm:px-6 lg:px-8 mt-1.5">
+      <div className="flex items-center py-2">
+        {/* <!-- Navigation Toggle --> */}
+        <button
+          type="button"
+          className="size-8 flex justify-center items-center gap-x-2 border border-gray-200 text-gray-800 hover:text-gray-500 rounded-lg focus:outline-none focus:text-gray-500 disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <span className="sr-only">Toggle Navigation</span>
+
+          <svg
+            className=" shrink-0 size-4"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </button>
+
+        {/* <!-- End Navigation Toggle --> */}
+
+        {/* <!-- Breadcrumb --> */}
+        <ol className="ms-2 flex items-center whitespace-nowrap">
+          {breadcrumbs.map((item, index) => (
+            <Link key={index} href={item.href || "#"}>
+              <li
+                className={`flex items-center text-sm truncate ${
+                  item.active ? "font-semibold text-cyan-700" : "text-gray-800"
+                }`}
+              >
+                {item.label}
+                {/* we don't need  the separator for the last item */}
+                {index < breadcrumbs.length - 1 && (
+                  <svg
+                    className="shrink-0 mx-3 overflow-visible size-2.5 text-gray-400"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
+              </li>
+            </Link>
+          ))}
+        </ol>
+        {/* <!-- End Breadcrumb --> */}
+      </div>
+    </div>
+  );
+};
+
+export const CustomeDropdown = () => {
+  return (
+    <div class="flex items-center flex-wrap gap-x-1 justify-end">
+      {/* <!-- Select --> */}
+      <div class="relative flex items-center">
+        <span class="text-neutral-600 text-sm me-1">Status:</span>
+        <div class="hs-select relative">
+          <select class="hidden">
+            <option value="">Choose</option>
+            <option selected="">All</option>
+            <option>Active</option>
+            <option>Completed</option>
+            <option>On Hold</option>
+            <option>No status</option>
+          </select>
+          <button></button>
+          <button
+            type="button"
+            aria-expanded="false"
+            class="text-neutral-800 text-sm ps-1.5 pe-7 py-1 border-transparent border rounded-lg gap-x-1.5 inline-flex items-center justify-center relative hover:bg-neutral-200 before:z-[1] before:inset-0 before:absolute"
+          >
+            <span class="truncate">All</span>
+          </button>
+          <div class="absolute p-1 bg-white rounded-lg w-32 mt-2 z-50 end-0 shadow-[0_10px_40px_10px_rgba(0,0,0,0.08)]">
+            {["All", "Active", "Completed", "On Hold", "No Status"].map(
+              (item) => (
+                <div
+                  class={`cursor-pointer text-neutral-800 py-1 px-2 rounded-lg gap-x-3 flex text-sm ${
+                    item === "All" ? "bg-neutral-100" : ""
+                  }`}
+                >
+                  <div class="flex justify-between items-center w-full ">
+                    <span>{item}</span>
+                    <span class={item === "All" ? "block" : "hidden"}>
+                      <svg
+                        class="text-neutral-800 flex-shrink-0 size-3.5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"></path>
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        <div class="absolute top-1/2 end-2 -translate-y-1/2">
+          <svg
+            class="text-neutral-800 shrink-0 size-3.5"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </div>
+      </div>
+      {/* <!-- End Select --> */}
+    </div>
+  );
+};
+
+export const WeekCalendarWithListEvent = ({
+  dates,
+  handleNextWeek,
+  handlePrevWeek,
+}) => {
+  return (
+    <div className="max-w-2xl w-full mx-auto">
+      <div class="shadow bg-white border-gray-200 border rounded-xl flex-col flex">
+        {/* <!-- Header --> */}
+        <div class="p-5 gap-2 flex justify-between items-center border-b border-gray-200">
+          <h2 class="text-neutral-800 font-semibold inline-block">Events</h2>
+
+          {/* <!-- Form Group --> */}
+          <div class="sm:justify-end gap-x-2 items-center flex">
+            {/* <!-- Button --> */}
+            <button
+              type="button"
+              class="text-white font-medium text-xs p-2 bg-cyan-600 border-transparent border rounded-md items-center inline-flex"
+            >
+              <svg
+                class="hidden sm:block shrink-0 size-3.5"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+              Add event
+            </button>
+            {/* <!-- End Button --> */}
+          </div>
+          {/* <!-- End Form Group --> */}
+        </div>
+        {/* <!-- End Header --> */}
+
+        {/* <!-- Body --> */}
+        <div class="p-5">
+          <h2 class="text-neutral-800 font-semibold text-sm">March 29, 2023</h2>
+
+          {/* <!-- Weekly Calendar --> */}
+          <div class="sm:gap-x-1 p-1 bg-white border-neutral-200 border rounded-xl gap-x-0.5 justify-between items-center flex mt-2">
+            <button
+              type="button"
+              onClick={handlePrevWeek}
+              class="text-neutral-500 text-sm rounded-lg min-w-8 h-12 hover:bg-neutral-100"
+            >
+              <svg
+                class="shrink-0 size-5 mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m15 18-6-6 6-6"></path>
+              </svg>
+            </button>
+            {/* calc width of this div */}
+            <div className=" overflow-scroll w-full">
+              <div className="sm:gap-x-1 p-1 bg-white gap-x-0.5 items-center flex sm:w-full w-96 flex-none overflow-scroll">
+                <button
+                  type="button"
+                  class="opacity-50 pointer-events-none text-neutral-600 text-sm rounded-lg  h-12  hover:bg-neutral-100 w-full"
+                  disabled=""
+                >
+                  <span class="block">Mon</span>
+                  <span class="block">27</span>
+                </button>
+                <button
+                  type="button"
+                  class="text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
+                >
+                  <span class="block">Tue</span>
+                  <span class="block">28</span>
+                </button>
+                {dates?.map((date) => (
+                  <button
+                    type="button"
+                    class="text-sm rounded-lg w-full h-12  hover:bg-neutral-100 bg-cyan-500/10 text-cyan-500 dark:focus:bg-blue-500/20"
+                  >
+                    <span class="block">{date.day || new Date().getDay()}</span>
+                    <span class="block font-semibold">
+                      {date.date || new Date().getDate()}
+                    </span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  class="text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
+                >
+                  <span class="block">Thu</span>
+                  <span class="block">30</span>
+                </button>
+                <button
+                  type="button"
+                  class="sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
+                >
+                  <span class="block">Fri</span>
+                  <span class="block">31</span>
+                </button>
+                <button
+                  type="button"
+                  class=" sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
+                >
+                  <span class="block">Sat</span>
+                  <span class="block">01</span>
+                </button>
+                <button
+                  type="button"
+                  class="sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
+                >
+                  <span class="block">Sun</span>
+                  <span class="block">02</span>
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleNextWeek}
+              class="text-sm rounded-lg min-w-8 h-12 hover:bg-neutral-100 text-neutral-500"
+            >
+              <svg
+                class="shrink-0 size-5 mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </button>
+          </div>
+          {/* <!-- End Weekly Calendar --> */}
+
+          <div class="mt-5">
+            {/* <!-- Events List Group --> */}
+            <ul class="-space-y-px bg-white border border-neutral-200 rounded-xl flex-col flex">
+              {/* <!-- List Item --> */}
+              <li class=" first:border-t-0 border-neutral-200 border-t">
+                <div class="sm:gap-y-0 sm:gap-x-3 sm:items-center sm:flex-row ps-0 p-3 gap-y-2 flex-col flex">
+                  <div class="sm:ps-0 sm:ms-auto sm:order-2 ps-3">
+                    <button
+                      type="button"
+                      class="shadow text-neutral-800 font-medium text-xs py-1.5 px-2 bg-white border rounded-lg border-neutral-200 gap-x-2 items-center inline-flex"
+                    >
+                      <span className="bg-rose-600 rounded-full size-2 absolute animate-ping"></span>
+                      <span className="bg-rose-600 rounded-full size-2"></span>
+                      Running
+                    </button>
+                  </div>
+                  <div class="sm:order-1">
+                    <button
+                      type="button"
+                      class="-ms-px group block text-start ps-[13px] border-rose-600 border-s-2 "
+                    >
+                      <span class="block text-neutral-800 font-medium text-sm text-start group-hover:text-blue-500">
+                        12:30 PM - 14:00 PM
+                      </span>
+                      <span class="block text-neutral-500 text-sm">
+                        Project onboarding with new teammates
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </li>
+              {/* <!-- End List Item --> */}
+
+              {/* <!-- List Item --> */}
+              <li class="border-t border-neutral-200">
+                <div class="flex items-center p-3 gap-x-3">
+                  <div class="flex items-center gap-x-2">
+                    <svg
+                      class="text-neutral-500 shrink-0 size-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                    <p class="text-neutral-700 text-sm">3 files attached</p>
+                  </div>
+                </div>
+              </li>
+              {/* <!-- End List Item --> */}
+            </ul>
+            {/* <!-- End Events List Group --> */}
+          </div>
+        </div>
+        {/* <!-- End Body --> */}
       </div>
     </div>
   );

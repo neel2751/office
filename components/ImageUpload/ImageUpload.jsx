@@ -9,7 +9,6 @@ const ImageUpload = ({ images, setImages, formRef }) => {
     try {
       let files = e.target.files;
       setUploading(true);
-
       if (
         [...allowedFileTypes.map((type) => type.toLowerCase())].indexOf(
           files[0]?.type.toLowerCase()
@@ -31,9 +30,9 @@ const ImageUpload = ({ images, setImages, formRef }) => {
         // setImages(data);
       }
 
-      if ([...images, ...Array.from(files)].length > 3) {
+      if ([...images, ...Array.from(files)].length > 5) {
         // add first  3 images
-        setImages([...images, ...Array.from(files)].slice(0, 3));
+        setImages([...images, ...Array.from(files)].slice(0, 5));
         toast.error("You can only upload up to 3 images.");
       } else {
         const newFiles = [...files].filter((file) => {
@@ -47,6 +46,7 @@ const ImageUpload = ({ images, setImages, formRef }) => {
         // formRef.current.reset();
       }
     } catch (e) {
+      toast.error("Something went wrong"); // error toast
       console.log(e);
     } finally {
       setUploading(false);
@@ -91,9 +91,9 @@ const ImageUpload = ({ images, setImages, formRef }) => {
             <input type="hidden" name="employeId" value="123456789" />
             {/* <!-- Drag 'n Drop --> */}
             <div className="space-y-4">
-              <label className="hidden font-medium text-sm mb-2 text-neutral-600">
+              <span className="hidden font-medium text-sm mb-2 text-neutral-600">
                 Upload images
-              </label>
+              </span>
               <div className="space-y-2 p-12 bg-white border-neutral-300 border-dashed border rounded-xl justify-center h-56 flex">
                 <div className="text-center">
                   <svg
@@ -175,10 +175,9 @@ const ImageUpload = ({ images, setImages, formRef }) => {
               </div>
             </div>
             {/* <!-- End Drag 'n Drop --> */}
-
             <p className="space-y-4 text-neutral-500 text-xs pt-2">
-              Add up to 10 documents . Each file should be no larger than 10MB.
-              You can also drag and drop files into this area.
+              Add up to 5 documents .Each file should be no larger than 5MB. You
+              can't drag and drop files into this area.
             </p>
           </div>
           {/* <!-- End Body --> */}

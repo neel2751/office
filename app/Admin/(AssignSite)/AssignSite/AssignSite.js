@@ -200,11 +200,12 @@ const AssignSite = ({ page }) => {
           <div className="align-middle inline-block min-w-full">
             <div className="shadow overflow-hidden">
               <table className="table-fixed min-w-full divide-y divide-gray-200">
-                <TableHead>
+                {/* <TableHead>
                   {CONSTANTROLETABLE.map((th) => (
                     <TableTH key={th.id} title={th.title} />
                   ))}
-                </TableHead>
+                </TableHead> */}
+                <TableTH data={CONSTANTROLETABLE} />
                 <TableBody>
                   {assignData &&
                     assignData.map((item) => (
@@ -225,14 +226,14 @@ const AssignSite = ({ page }) => {
                         />
                         <td className="p-4 whitespace-nowrap space-x-2">
                           <TableAction
-                            svg={<PencilSquareIcon className="mr-1 h-5 w-5" />}
-                            btnName={`Edit ${page.split("/")[2]}`}
+                            svg={<PencilSquareIcon className="h-5 w-5" />}
+                            // btnName={`Edit ${page.split("/")[2]}`}
                             cls="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
                             handleClick={() => handleOpenModel(item)}
                           />
                           <TableAction
-                            svg={<TrashIcon className="mr-1 h-5 w-5" />}
-                            btnName={`Delete ${page.split("/")[2]}`}
+                            svg={<TrashIcon className="h-5 w-5" />}
+                            // btnName={`Delete ${page.split("/")[2]}`}
                             cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
                             handleClick={() => handleDelete(item._id)}
                           />

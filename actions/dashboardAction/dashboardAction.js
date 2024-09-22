@@ -1,11 +1,370 @@
 "use server";
-
 import { connect } from "@/dbConfig/dbConfig";
 import AttendanceModel from "@/models/attendanceModel";
-// import cron from "node-cron";
-
 import EmployeModel from "@/models/employeeModel";
+import OfficeEmployeeModel from "@/models/officeEmployeModel";
+import ProjectSiteModel from "@/models/siteProjectModel";
 import mongoose from "mongoose";
+
+/*
+@description: This function is used to get all function for promises
+@params: none
+@returns: 4 promises Data
+* 1. get all employee summary Data like total, active, inactive, VisaExp. Employee Function Name : getEmployeeSummary
+* 2. get all offices employee summary Data  like total, active, inactive, VisaExp. Employee  Function Name : getOfficeEmployeeSummary
+* 3. get last 90 days attendance data like date, totalpay, totalhours for Chart  Function Name : getLast90DaysDataForChart
+* 4. get Today total Pay  and total hours for only for report...  Function Name : getTodayTotalPayAndHours
+*/
+export async function fetchCardData() {
+  try {
+    const emploeyeeData = await getEmpSummaryData();
+    const officeEmployeeData = await getOfficeEmpSummaryData();
+    const last90DaysDataForChart = await getLast90DaysDataForChart();
+    const currentDateTotalPay = await getTodayTotalPayAndHours();
+    const totalFullSiteData = await getTotalSiteWorkingRightCount();
+
+    const data = await Promise.all([
+      emploeyeeData,
+      officeEmployeeData,
+      last90DaysDataForChart,
+      currentDateTotalPay,
+      totalFullSiteData,
+    ]); // wait for both promises to resolve
+
+    const NumberOfEmployeeData = data[0];
+    const NumberOfficeEmployeeData = data[1];
+    const last90DaysDataForChartData = data[2]; // 2nd element of the array
+    const CurrentDayTotalPay = data[3];
+    const TotalFullSiteData = data[4]; // 4th element of the array
+    return {
+      NumberOfEmployeeData,
+      NumberOfficeEmployeeData,
+      last90DaysDataForChartData,
+      CurrentDayTotalPay,
+      TotalFullSiteData,
+    };
+  } catch (error) {
+    console.error(error);
+    return { status: false, message: "Server Error" };
+  }
+}
+
+// Get All the Employee data form Once like active, inactive, total, enddate
+export const getEmpSummaryData = async () => {
+  try {
+    await connect();
+    const threeFromNow = new Date();
+    threeFromNow.setMonth(threeFromNow.getMonth() + 3);
+    const result = await EmployeModel.aggregate([
+      {
+        $group: {
+          _id: "$employeeId", // Group by employeeId
+          totalEmployees: { $sum: 1 }, // Count total number of employees
+          activeEmployees: {
+            $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
+          }, // Count active employees
+          inactiveEmployees: {
+            $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] },
+          }, // Count inactive employees
+          expiredEmployees: {
+            $sum: { $cond: [{ $lte: ["$eVisaExp", new Date()] }, 1, 0] },
+          }, // Count expired employees (endDate <= current date)
+          reminderEmployees: {
+            $push: { name: "$firstName", eVisaExp: "$eVisaExp" }, // Push name and eVisaExp fields to an array
+          },
+        },
+      },
+    ]).exec();
+    if (result[0]?._id === null) {
+      // send data into array);
+      const {
+        totalEmployees,
+        activeEmployees,
+        inactiveEmployees,
+        expiredEmployees,
+        reminderEmployees,
+      } = result[0];
+      const data = {
+        totalEmployees: totalEmployees,
+        activeEmployees: activeEmployees,
+        inactiveEmployees: inactiveEmployees,
+        expiredEmployees: expiredEmployees,
+        reminderEmployees: reminderEmployees,
+      };
+      return { status: true, data: JSON.stringify(data) };
+    } else {
+      const data = {
+        totalEmployees: 0,
+        activeEmployees: 0,
+        inactiveEmployees: 0,
+        expiredEmployees: 0,
+        reminderEmployees: [], // send reminder data
+      };
+      return {
+        status: false,
+        message: "No Data Found!",
+        data: JSON.stringify(data),
+      };
+    }
+  } catch (error) {
+    console.log("Error at getting employee summary data : ", error);
+    return { status: false, message: "Internal Server Error" };
+  }
+};
+
+// Get All the Office Employee data form Once like active, inactive, total, enddate
+export const getOfficeEmpSummaryData = async () => {
+  try {
+    await connect();
+    const threeFromNow = new Date();
+    threeFromNow.setMonth(threeFromNow.getMonth() + 3);
+    const result = await OfficeEmployeeModel.aggregate([
+      // if delete true don't  count
+      { $match: { delete: false } }, // filter out deleted employees
+      // { $match: { end_date: { $lte: threeFromNow } } }, // filter by end_date
+      {
+        $group: {
+          _id: "$employeeId", // Group by employeeId
+          totalEmployees: { $sum: 1 }, // Count total number of employees
+          activeEmployees: {
+            $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
+          }, // Count active employees
+          inactiveEmployees: {
+            $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] },
+          }, // Count inactive employees
+          expiredEmployees: {
+            $sum: { $cond: [{ $lte: ["$endDate", new Date()] }, 1, 0] },
+          }, // Count expired employees (endDate <= current date)
+          reminderEmployees: {
+            $push: { name: "$firstName", eVisaExp: "$endDate" }, // Push name and eVisaExp fields to an array
+          },
+        },
+      },
+    ]).exec();
+    if (result[0]?._id === null) {
+      // send data into array);
+      const {
+        totalEmployees,
+        activeEmployees,
+        inactiveEmployees,
+        expiredEmployees,
+        reminderEmployees,
+      } = result[0];
+      const data = {
+        totalEmployees: totalEmployees || 0,
+        activeEmployees: activeEmployees || 0,
+        inactiveEmployees: inactiveEmployees || 0,
+        expiredEmployees: expiredEmployees || 0,
+        reminderEmployees: reminderEmployees || [], // send reminder data
+      };
+      return {
+        status: true,
+        data: JSON.stringify(data),
+      };
+    } else {
+      const data = {
+        totalEmployees: 0,
+        activeEmployees: 0,
+        inactiveEmployees: 0,
+        expiredEmployees: 0,
+        reminderEmployees: [], // send reminder data
+      };
+      return {
+        status: false,
+        message: "No Data Found!",
+        data: JSON.stringify(data),
+      };
+    }
+  } catch (error) {
+    console.log("Error at getting employee summary data : ", error);
+    return { status: false, message: "Internal Server Error" };
+  }
+};
+
+// Get Last 3 Month Data for Chart
+export async function getLast90DaysDataForChart() {
+  const startDate = new Date();
+  const endDate = new Date();
+  let daysToSubtract = 90;
+  startDate.setDate(endDate.getDate() - daysToSubtract);
+  const pipeline = [
+    { $unwind: "$employeAttendance" },
+    {
+      $project: {
+        day: { $dayOfMonth: "$employeAttendance.aDate" },
+        month: { $month: "$employeAttendance.aDate" },
+        year: { $year: "$employeAttendance.aDate" },
+        totalHours: "$employeAttendance.totalHours",
+        totalPay: "$employeAttendance.totalPay",
+        aDate: "$employeAttendance.aDate", // Include aDate for filtering
+      },
+    },
+    {
+      $match: {
+        aDate: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { day: "$day", month: "$month", year: "$year" },
+        totalHours: { $sum: "$totalHours" },
+        // totalPay: { $sum: "$totalPay" }, // Include totalPay for filtering
+        totalPay: { $sum: { $round: ["$totalPay", 2] } },
+      },
+    },
+  ];
+  try {
+    const result = await AttendanceModel.aggregate(pipeline);
+    // make a date  string for the result
+    const formattedResult = result.map((item) => {
+      return {
+        TotalHours: item.totalHours, // Remove the _id field
+        TotalPay: item.totalPay, // Remove the _id field
+        date: `${item._id.year}-${item._id.month}-${item._id.day}`,
+      };
+    }); // format the date
+    //send a date like Asc order
+    return formattedResult.sort((a, b) => {
+      return new Date(a.date) - new Date(b.date);
+    }); // sort the result by date in descending order
+  } catch (error) {
+    return { status: false, message: "Error in fetching data" };
+  }
+}
+
+// Get  total hours and pay for a specific date Now for Only today and top 7 total high pay employee
+export async function getTodayTotalPayAndHours() {
+  await connect();
+  // const now = new Date("2024-08-15" + "T" + "00:00:00.000Z");
+  const today = new Date().toISOString().split("T")[0];
+  const now = new Date(today + "T" + "00:00:00.000Z"); // get today date
+  const pipeline = [
+    { $match: { attendanceDate: now } },
+    { $unwind: "$employeAttendance" },
+    // { $match: { "employeAttendance.aDate": { $eq: now } } }, // Filter by today's date
+    {
+      $group: {
+        _id: "$employeAttendance.employeeId", // Group by employeeId
+        totalHours: { $sum: "$employeAttendance.totalHours" },
+        totalPay: { $sum: "$employeAttendance.totalPay" },
+      },
+    },
+    {
+      $lookup: {
+        from: "employes", // Replace with your employee collection name
+        localField: "_id",
+        foreignField: "_id",
+        as: "employeeData",
+      },
+    },
+    {
+      $unwind: "$employeeData", // Unwind the employee data array
+    },
+    {
+      $project: {
+        employeeId: "$_id",
+        firstName: "$employeeData.firstName",
+        lastName: "$employeeData.lastName",
+        payRate: "$employeeData.payRate",
+        paymentType: "$employeeData.paymentType",
+        totalHours: 1,
+        totalPay: 1,
+      },
+    },
+    {
+      $sort: { totalPay: -1 },
+    },
+    {
+      $group: {
+        _id: null,
+        employees: { $push: "$$ROOT" }, // Group by null to get all employees
+        totalHours: { $sum: "$totalHours" },
+        totalPay: { $sum: { $round: ["$totalPay", 2] } },
+      },
+    }, // Group by total hours and total pay
+    // we need only three employee under the employess  array , add totalPays  and totalHours
+    {
+      $project: {
+        _id: 0,
+        employees: { $slice: ["$employees", 3] },
+        // employees: 1,
+        totalHours: 1,
+        totalPay: { $round: ["$totalPay", 2] }, // Round total pay to 2 decimal places
+      },
+    }, // Project the desired fields
+  ];
+
+  try {
+    let totalPay = 0;
+    const result = await AttendanceModel.aggregate(pipeline); // Aggregate the data
+    totalPay = result[0]?.totalPay || 0;
+    return {
+      totalPay,
+      totalHours: result[0]?.totalHours || 0,
+      employees: JSON.stringify(result[0]?.employees || []),
+    }; // Return the total pay and hours
+    // console.log("Total pay for all employees today:", totalPay);
+  } catch (error) {
+    console.error("Error getting current date total pay: ", error);
+    return { status: false, message: "Error calculating total pay" };
+  }
+}
+
+// Get Total Site Working Right count total Site, active, complete, on hold, no status
+export async function getTotalSiteWorkingRightCount() {
+  try {
+    const pipeline = [
+      // {
+      //   $match: {
+      //     siteDelete: false, // Filter active sites
+      //   },
+      // }, // when upload production please Add  this line
+      {
+        $facet: {
+          total: [{ $count: "total" }], // Count total number of sites
+          siteTypes: [
+            {
+              $group: {
+                _id: "$siteType",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          statuses: [
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+    ];
+    const result = await ProjectSiteModel.aggregate(pipeline);
+    return {
+      total: result[0]?.total[0]?.total || 0, // Total number of sites
+      siteTypes: result[0]?.siteTypes || [], // Site types with count
+      statuses: result[0]?.statuses || [
+        { _id: "Active", count: 0 },
+        { _id: "On Hold", count: 0 },
+        { _id: "Completed", count: 0 },
+        { _id: "No Status", count: 0 },
+      ], // Statuses with count
+    };
+  } catch (error) {
+    return {
+      status: false,
+      message: "Error getting total site working right count",
+    }; // Return error message
+    console.error("Error getting total site working right count: ", error);
+  }
+}
+
+// End Fetch Card Function we using
 
 // All employe length with Active and  Inactive employee
 export const employeeLength = async () => {
@@ -180,63 +539,73 @@ export const getActiveEmployee = async (page, limit) => {
   }
 };
 
-// Get All the data form Once like active, inactive, total, enddate
-export const getEmpSummaryData = async () => {
+export const getTotalHoursPerMonth = async () => {
   try {
-    await connect();
-    const threeFromNow = new Date();
-    threeFromNow.setMonth(threeFromNow.getMonth() + 3);
-    const result = await EmployeModel.aggregate([
+    const pipeline = [
       {
-        $group: {
-          _id: "$employeeId", // Group by employeeId
-          totalEmployees: { $sum: 1 }, // Count total number of employees
-          activeEmployees: {
-            $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
-          }, // Count active employees
-          inactiveEmployees: {
-            $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] },
-          }, // Count inactive employees
-          expiredEmployees: {
-            $sum: { $cond: [{ $lte: ["$eVisaExp", new Date()] }, 1, 0] },
-          }, // Count expired employees (endDate <= current date)
-          reminderEmployees: {
-            $push: { name: "$firstName", eVisaExp: "$eVisaExp" }, // Push name and eVisaExp fields to an array
-          },
+        $unwind: "$employeAttendance",
+      },
+      {
+        $project: {
+          month: { $month: "$employeAttendance.aDate" },
+          year: { $year: "$employeAttendance.aDate" },
+          totalHours: "$employeAttendance.totalHours",
+          totalPay: "$employeAttendance.totalPay", // totalPay
         },
       },
-    ]).exec();
+      // {$match: {year: year}}, // filter by year
+      {
+        $group: {
+          _id: { month: "$month", year: "$year" },
+          totalHours: { $sum: "$totalHours" },
+          totalPay: { $sum: "$totalPay" },
+        }, // group by month and year
+      },
+    ];
+    const result = await AttendanceModel.aggregate(pipeline); // execute the pipeline
+    // we have to add in month name not number if there is not any month name  then we have to add month name
+    const monthName = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ]; // month name array
 
-    if (result[0]._id === null) {
-      return { status: true, data: JSON.stringify(result[0]) };
-    } else {
-      return { status: false, message: "No Data Found!" };
-    }
+    const data = result.map((item) => {
+      const month = item._id.month; // get month number
+      const monthNameValue = monthName[month - 1] || month; // get month name
+      return {
+        month: monthNameValue, // get month name
+        totalHours: parseFloat(item.totalHours), // get total hours
+        totalPay: parseFloat(item.totalPay), // get total pay
+      };
+    }); // map the result
+
+    const completeMonthData = monthName.map((month) => ({
+      month,
+      totalHours: 0,
+      totalPay: 0,
+    }));
+    const mergedData = completeMonthData.map((monthData) => {
+      const existingData = data.find((item) => item.month === monthData.month);
+      // return existingData ? { ...monthData, ...existingData } : monthData; // merge data
+      return {
+        ...monthData,
+        ...(existingData || {}),
+      };
+    });
+    return mergedData; // return the merged data
   } catch (error) {
-    console.log("Error at getting employee summary data : ", error);
-    return { status: false, message: "Internal Server Error" };
+    return { status: false, message: "Server  Error" };
   }
-
-  //   // Total Active Employee
-  //   const activeCount = await EmployeModel.countDocuments({ status: "Active" });
-
-  //   // Total Inactive Employee
-  //   const inactiveCount = await EmployeModel.countDocuments({ status: "Inactive" });
-
-  //   // Total Designations
-  //   const designationCount = await DesignationModel.countDocuments();
-
-  //   // Get End Date Employee
-  //   let todayDate = moment().format("YYYY-MM-DD");
-  //   const endDateCount = await EmployeModel.countDocuments({
-  //     end_date: { $lt: todayDate },
-  //   });
-};
-
-// count weekly employee totalPay how much we have to pay to employee this week and this month
-export const getEmployeeSummaryWeekMonthData = async () => {
-  try {
-  } catch (e) {}
 };
 
 // Function to calculate weekly and monthly total pay for employees
@@ -350,27 +719,6 @@ export const getEmployeeSummaryWeekMonthData = async () => {
 //   }
 // }
 
-export async function getCurrentDateTotalPay() {
-  try {
-    const currentDate = new Date();
-    let totalPay = 0;
-    const currentDateData = await AttendanceModel.find({
-      "employeAttendance.aDate": {
-        $gte: new Date(currentDate.setHours(0, 0, 0, 0)), // Start of current date
-        $lt: new Date(currentDate.setHours(23, 59, 59, 999)), // End of current date
-      },
-    });
-    for (const employeData of currentDateData) {
-      for (const attendanceData of employeData.employeAttendance) {
-        totalPay += attendanceData.totalPay;
-      }
-    }
-    // Extract total pay from the result
-    console.log("Total pay for all employees today:", totalPay);
-  } catch (error) {
-    console.error("Error getting current date total pay: ", error);
-  }
-}
 // Get weekly total pay for an employee
 export async function getWeeklyTotalPay(employeeID) {
   if (!employeeID || typeof employeeID !== "string")
@@ -544,6 +892,11 @@ export async function calculateTotalPaywithPaymentType(startDate, endDate) {
 // #1 We wroking on this function we have to use in this two place first  in employe and second in payment
 //This is Call From FilterData.js & Each EmployeData for we have to pass employeId File Working with Production Ready Code
 export async function allEmployeeDataWithDateRange(props) {
+  /* @type {Object} props
+  @ we artificially dealy a response for demo  purpose.
+  @ Don't do this in production :)
+  */
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
     // const  startDate = moment(testing.startDate).startOf("day").toDate();
     let { startDate, endDate, paymentType, employeId, search, limit, page } =
@@ -556,6 +909,7 @@ export async function allEmployeeDataWithDateRange(props) {
     const employeIdArray = employeId
       ? employeId.map((id) => new mongoose.Types.ObjectId(id))
       : []; // convert employeId to array
+
     await connect();
     // if we have emploeId then doesn't required for this query we have to do on Monday
     const employeeIds = await EmployeModel.find(
@@ -599,6 +953,7 @@ export async function allEmployeeDataWithDateRange(props) {
           employeAttendance: {
             employeeId: "$employeAttendance.employeeId",
             aDate: "$employeAttendance.aDate",
+            aPayRate: "$employeAttendance.aPayRate",
             totalHours: "$employeAttendance.totalHours",
             totalPay: "$employeAttendance.totalPay",
           },
@@ -633,7 +988,7 @@ export async function allEmployeeDataWithDateRange(props) {
       {
         $match: {
           "employeAttendance.employeeId": {
-            $in: employeId ? employeIdArray : employeeIds,
+            $in: employeId.length > 0 ? employeIdArray : employeeIds,
           },
         },
       },
@@ -657,6 +1012,7 @@ export async function allEmployeeDataWithDateRange(props) {
                 employeAttendance: {
                   employeeId: "$employeAttendance.employeeId",
                   aDate: "$employeAttendance.aDate",
+                  aPayRate: "$employeAttendance.aPayRate",
                   totalHours: "$employeAttendance.totalHours",
                   totalPay: "$employeAttendance.totalPay",
                 },
@@ -671,6 +1027,12 @@ export async function allEmployeeDataWithDateRange(props) {
         },
       },
     ]);
+
+    // const getTotalHoursWithDateFilter = await getTotalHoursPerMonth(
+    //   startDate,
+    //   endDate
+    // );
+    // console.log(getTotalHoursWithDateFilter); // This will print the total hours for each month
 
     let totalPay = 0;
     let totalHours = 0; // initialize total hours
@@ -687,6 +1049,7 @@ export async function allEmployeeDataWithDateRange(props) {
             name: `${attendance.employeeData.firstName} ${attendance.employeeData.lastName}`, // employeeName
             paymentType: attendance.employeeData.paymentType, // paymentType
             payRate: attendance.employeeData.payRate,
+            oldPayrate: attendance.employeAttendance.aPayRate,
             totalHours: attendance.employeAttendance.totalHours,
             totalPay: attendance.employeAttendance.totalPay, // send total pay
             date: attendance.employeAttendance.aDate.toDateString(),
@@ -694,6 +1057,7 @@ export async function allEmployeeDataWithDateRange(props) {
           };
         }
       );
+    // console.log(employeeDataWithPay);
     const totalData =
       allAttendanceWithEmployeDataG[0]?.totalCount[0]?.totalAttendance || 0;
     return {
@@ -714,6 +1078,83 @@ export async function allEmployeeDataWithDateRange(props) {
     }; // return empty array
   }
 }
+
+// async function getTotalHoursPerMonth(startDate, endDate) {
+//   const pipeline = [
+//     { $unwind: "$employeAttendance" },
+//     {
+//       $project: {
+//         month: { $month: "$employeAttendance.aDate" },
+//         year: { $year: "$employeAttendance.aDate" },
+//         totalHours: "$employeAttendance.totalHours",
+//         aDate: "$employeAttendance.aDate", // Include aDate for filtering
+//       },
+//     },
+//     {
+//       $match: {
+//         aDate: {
+//           $gte: startDate,
+//           $lte: endDate,
+//         },
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: { month: "$month", year: "$year" },
+//         totalHours: { $sum: "$totalHours" },
+//       },
+//     },
+//   ];
+
+//   const result = await AttendanceModel.aggregate(pipeline);
+//   return result;
+// }
+
+export async function getTotalHoursPerDay(startDate, endDate) {
+  const pipeline = [
+    { $unwind: "$employeAttendance" },
+    {
+      $project: {
+        day: { $dayOfMonth: "$employeAttendance.aDate" },
+        month: { $month: "$employeAttendance.aDate" },
+        year: { $year: "$employeAttendance.aDate" },
+        totalHours: "$employeAttendance.totalHours",
+        totalPay: "$employeAttendance.totalPay",
+        aDate: "$employeAttendance.aDate", // Include aDate for filtering
+      },
+    },
+    {
+      $match: {
+        aDate: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { day: "$day", month: "$month", year: "$year" },
+        totalHours: { $sum: "$totalHours" },
+        totalPay: { $sum: "$totalPay" }, // Include totalPay for filtering
+      },
+    },
+  ];
+
+  const result = await AttendanceModel.aggregate(pipeline);
+  // make a date  string for the result
+  const formattedResult = result.map((item) => {
+    return {
+      TotalHours: item.totalHours, // Remove the _id field
+      TotalPay: item.totalPay, // Remove the _id field
+      date: `${item._id.year}-${item._id.month}-${item._id.day}`,
+    };
+  }); // format the date
+  //send a date like Asc order
+  return formattedResult.sort((a, b) => {
+    return new Date(a.date) - new Date(b.date);
+  }); // sort the result by date in descending order
+}
+
 async function calculateTotalPaywithEmployeeId(
   employeId,
   paymentType,

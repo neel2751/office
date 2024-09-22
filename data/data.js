@@ -9,6 +9,7 @@ import {
   BriefcaseIcon,
   FunnelIcon,
 } from "@heroicons/react/24/outline";
+import { Network } from "lucide-react";
 
 export const MENU = [
   {
@@ -66,16 +67,6 @@ export const MENU = [
     icon: <ChartPieIcon className="w-6 h-6" />,
   },
   {
-    name: "Shift View",
-    path: "/Admin/shiftview",
-    role: "superAdmin",
-    submenu: [
-      { name: "View Shifts", path: "/shiftview/viewshifts" },
-      { name: "Add Employee to Shift", path: "/addEmpToShift" },
-    ],
-    icon: <RadioIcon className="w-6 h-6" />,
-  },
-  {
     name: "Assign Site",
     path: "/Admin/AssignSite",
     role: "superAdmin",
@@ -84,6 +75,12 @@ export const MENU = [
       { name: "Add Employee to Shift", path: "/addEmpToShift" },
     ],
     icon: <RadioIcon className="w-6 h-6" />,
+  },
+  {
+    name: "SiteAssign",
+    path: "/Admin/SiteAssign",
+    role: "superAdmin",
+    icon: <Network className="w-5 h-5" />,
   },
   {
     name: "All Role",

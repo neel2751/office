@@ -19,7 +19,7 @@ const Search = forwardRef(function Search(
           type="text"
           name="search"
           id={searchId}
-          className="bg-gray-50 border border-gray-200 ps-9 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full py-2 px-3 "
+          className="bg-gray-50 border border-gray-200 ps-9 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:ring-2 block w-full py-2 px-3 outline-none"
           placeholder={placeholder}
         />
         <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-3">

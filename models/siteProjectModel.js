@@ -29,9 +29,9 @@ const projectSiteSchema = new mongoose.Schema(
       required: false,
       maxLength: 500,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now(),
+    siteDelete: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

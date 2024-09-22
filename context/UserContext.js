@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 export const AdminContext = createContext();
 export const AdminProvider = ({ children }) => {
   const { data: session } = useSession(); // get the user session
+  console.log(session);
   return (
     <AdminContext.Provider value={session}>{children}</AdminContext.Provider>
   );
@@ -14,7 +15,7 @@ export const useAdminContext = () => {
   const useContextAdmin = useContext(AdminContext);
   if (!useContextAdmin) {
     // console.log(useContextAdmin); // check if the context is correctly set up
-    // toast.error("You are not authorized to access this page"); // if user is not logged in
+    toast.error("You are not authorized to access this page"); // if user is not logged in
     // toast.error("useAdminContext must be used within AdminProvider Erro");
   }
   return useContextAdmin;

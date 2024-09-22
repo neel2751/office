@@ -10,9 +10,19 @@ import {
 import { handleRequestDocument } from "../documentUploadAction/documentUploadAction";
 import EmployeDocumentModel from "@/models/employeDocumentModel";
 
-export const handleEmploye = async (data, images, id) => {
+import { createCipheriv, randomBytes, createDecipheriv } from "crypto";
+import { changeDateToString } from "../commonAction/commonAction";
+
+/*
+* Task 1: If Employee Say chnage payrate with false means update only in employee table otherwise  update in all attendance table
+# 1.1: Because this task is very complex so we will always ask to user to chnage in all table or not
+# 1.2: If user say yes then we will update all table otherwise we will update only employee table
+# 1.3: We will use attendanceModel to update all table
+*/
+
+export const handleEmploye = async (data, id, isChecked) => {
   if (!data) return { status: false, message: "Please Provide Informations" };
-  if (!images) return { status: true, message: "success" };
+  // if (!images) return { status: true, message: "success" };
   const payRateValidation = /^([1-9][\d]{0,7})(\.\d{0,2})?$/; // 1.5 or 15.68 or .34 only
   const Payrate = payRateValidation.test(String(Number(data.payRate)));
   if (Payrate === false) return { status: false, message: "Invalid Pay Rate" };
@@ -56,20 +66,23 @@ export const handleEmploye = async (data, images, id) => {
         { new: true }
       );
       if (!res) return { status: false, message: "Somthing Went Wrong..." };
-
-      const attendanceRecords = await AttendanceModel.find({
-        "employeAttendance.employeeId": id,
-      });
-      // Iterate over each attendance record and update the totalPay for the employee
-      for (const record of attendanceRecords) {
-        for (const attendee of record.employeAttendance) {
-          if (attendee.employeeId.toString() === id) {
-            // Update totalPay based on newPayRate
-            attendee.totalPay = attendee.totalHours * payRate;
+      if (isChecked) {
+        const attendanceRecords = await AttendanceModel.find({
+          "employeAttendance.employeeId": id,
+        });
+        // Iterate over each attendance record and update the totalPay for the employee
+        for (const record of attendanceRecords) {
+          for (const attendee of record.employeAttendance) {
+            if (attendee.employeeId.toString() === id) {
+              // Update totalPay based on newPayRate
+              // we have to update only aPayRate
+              attendee.aPayRate = payRate; // Update aPayRate
+              attendee.totalPay = attendee.totalHours * payRate;
+            }
           }
+          // Save the updated attendance record
+          await record.save();
         }
-        // Save the updated attendance record
-        await record.save();
       }
       return { status: true, message: "Employee Record Update..." };
     } else {
@@ -88,19 +101,19 @@ export const handleEmploye = async (data, images, id) => {
       }); // create new employee
       if (!addEmploye)
         return { status: false, message: "Somthing Went Wrong..." }; // if the employee is not created
-      if (addEmploye._id) {
-        // if the employee is created
-        // await EmployeModel.find({}).sort({_id:-1}).limit(1) // get the last employee id
-        try {
-          const employeId = addEmploye._id.toString();
-          const response = await handleRequestDocument(images, employeId); // upload images to cloudinary
-          if (!response.success)
-            return { success: false, message: "Somthing Went Wrong..." }; // if the employee document is not created
-          return { success: true, message: "Employee Record Create..." }; // if the employee is created
-        } catch (error) {
-          console.log(error); // if the employee is created
-        }
-      }
+      // if (addEmploye._id) {
+      //   // if the employee is created
+      //   // await EmployeModel.find({}).sort({_id:-1}).limit(1) // get the last employee id
+      //   try {
+      //     const employeId = addEmploye._id.toString();
+      //     const response = await handleRequestDocument(images, employeId); // upload images to cloudinary
+      //     if (!response.success)
+      //       return { success: false, message: "Somthing Went Wrong..." }; // if the employee document is not created
+      //     return { success: true, message: "Employee Record Create..." }; // if the employee is created
+      //   } catch (error) {
+      //     console.log(error); // if the employee is created
+      //   }
+      // }
       if (addEmploye) {
         const data = {
           status: true,
@@ -110,6 +123,7 @@ export const handleEmploye = async (data, images, id) => {
       }
     }
   } catch (error) {
+    return { status: false, message: "Somthing Went Wrong..." }; // if the employee is not created
     // console.log(Object.keys(error.keyValue));
     if (error.name === "ValidationError") {
       const errorMsg = Object.values(error.errors).map((el) => el.message);
@@ -141,23 +155,34 @@ const handleDuplicateKeyError = (error) => {
 };
 
 const EmployePhoneAndEmailExists = async (id, phone, email) => {
+  console.log(id);
   try {
     if (id) {
-      const phoneExist = await EmployeModel.findOne({
-        phone,
-        _id: { $ne: id },
-      });
-      const emailExist = await EmployeModel.findOne({
-        email,
-        _id: { $ne: id },
-      });
-      if (phoneExist || emailExist) {
-        return {
-          status: false,
-          message: "This Phone  or Email is already in use.",
-        };
+      if (email === "") {
+        const phoneExist = await EmployeModel.findOne({
+          phone,
+          _id: { $ne: id },
+        });
+        if (phoneExist)
+          return { status: false, message: "Phone number already exist" };
+        return { status: true, message: "Phone number is available" };
       } else {
-        return { status: true, message: "Both fields are available" };
+        const phoneExist = await EmployeModel.findOne({
+          phone,
+          _id: { $ne: id },
+        });
+        const emailExist = await EmployeModel.findOne({
+          email,
+          _id: { $ne: id },
+        });
+        if (phoneExist || emailExist) {
+          return {
+            status: false,
+            message: "This Phone  or Email is already in use.",
+          };
+        } else {
+          return { status: true, message: "Both fields are available" };
+        }
       }
     } else {
       // if email is empty  then only check for the phone otherwise both should be checked $or operator
@@ -191,40 +216,71 @@ const EmployePhoneAndEmailExists = async (id, phone, email) => {
   }
 };
 
-export const getAllEmployees = async (keyword) => {
+export const getAllEmployeesForSiteAssign = async () => {
+  try {
+    const response = await EmployeModel.find().select(
+      "_id firstName lastName payRate"
+    );
+    const data = JSON.stringify(response);
+    return { data };
+  } catch (error) {
+    console.log("Error while fetching all employees for site assign", error);
+  }
+};
+
+export const getAllEmployees = async (keyword, filter) => {
+  const { page, limit } = filter;
   try {
     let employees;
+
+    const keywordQuery = keyword
+      ? {
+          $or: [
+            { firstName: { $regex: String(keyword), $options: "i" } },
+            { lastName: { $regex: String(keyword), $options: "i" } },
+          ],
+        }
+      : {}; // search by name or email
+
+    const totalEmployees = await EmployeModel.countDocuments(keywordQuery);
     if (keyword) {
-      const filterData = await EmployeModel.find({
-        // <-- Remove { query }, just pass the query object directly
-        $or: [
-          { firstName: { $regex: String(keyword), $options: "i" } },
-          { lastName: { $regex: String(keyword), $options: "i" } },
-        ],
-      });
+      const filterData = await EmployeModel.find(keywordQuery)
+        .skip((page - 1) * limit)
+        .limit(limit);
       employees = filterData;
     } else {
-      employees = await EmployeModel.find();
+      employees = await EmployeModel.find()
+        .skip((page - 1) * limit)
+        .limit(limit);
     }
     // RangeError handling  for empty array
     if (!employees || !Array.isArray(employees))
       return { status: 503, message: "No employee found" };
+
+    function convertDateToString(date) {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      return new Date(date).toLocaleDateString("en-US", options);
+    }
     // password and bank details not send to client side using delete
     const filteredEmps = employees.map((employee) => ({
       ...employee._doc,
       ePassword: undefined,
-      // bankDetail: undefined,
+      // bankDetail: undefined, // delete bank details
+      // eAddress: employee.eAddress,
     }));
     // employees.forEach((employee) => delete employee.password);
     const data = {
       status: true,
-      count: employees.length,
+      count: totalEmployees,
       data: JSON.stringify(filteredEmps),
     };
 
     return data;
   } catch (err) {
-    console.log("Error getting all employees", err);
+    return {
+      status: false,
+      message: "Error fetching employees!, Refresh Page",
+    };
   }
 };
 
@@ -309,10 +365,12 @@ export const handleOfficeEmployee = async (id, data) => {
       // checking  for unique fields both email and phone
       const hasSameEmail = await OfficeEmployeeModel.findOne({
         email: data.email,
+        delete: false, // only check for active employees
         _id: { $ne: id },
       }).exec();
       const hasSamePhone = await OfficeEmployeeModel.findOne({
         phoneNumber: data.phoneNumber,
+        delete: false, // only check for active employees
         _id: { $ne: id },
       }).exec();
       if (hasSameEmail || hasSamePhone) {
@@ -340,6 +398,7 @@ export const handleOfficeEmployee = async (id, data) => {
       const hashPass = await GenerateHashPassword(password);
       await connect();
       let userExist = await OfficeEmployeeModel.findOne({
+        delete: false, // only check for active employees
         $or: [{ email }, { phoneNumber }],
       });
       if (!userExist) {
@@ -541,4 +600,30 @@ async function updateTotalPayForEmployee(employeeId, newPayRate) {
   } catch (error) {
     console.error("Error updating totalPay:", error);
   }
+}
+
+// Create Encryption Employe Id using the Crypto createCipheriv
+function encryptId(id) {
+  const key =
+    "110498ba6d3c820935ad33c9ccf2964932aac4e3e5ab0803e026c8e9e99d27eb"; // Generate a random key
+  const iv = randomBytes(16); // Initialization vector
+  const cipher = createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), iv);
+
+  // const cipher = createCipheriv("aes-256-cbc", key, iv);
+  let encrypted = cipher.update(
+    JSON.stringify({
+      id,
+    }),
+    "utf8",
+    "hex"
+  );
+  encrypted += cipher.final("hex");
+  // send like encrypted?
+  return encrypted;
+  return encrypted;
+
+  // return {
+  //   iv: iv.toString("hex"),
+  //   encryptedData: encrypted,
+  // };
 }

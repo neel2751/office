@@ -3,6 +3,10 @@ import { getSiteById } from "../siteProject/siteProjectAction";
 import { getEmployeById } from "../employeAction/employeAction";
 import AssignProjectModel from "@/models/assignProjectModel";
 import { randomInt } from "crypto";
+import SiteAssignModel from "@/models/siteAssignModel";
+import AttendanceModel from "@/models/attendanceModel";
+import EmployeModel from "@/models/employeeModel";
+import mongoose from "mongoose";
 
 export const handleAssignSite = async (id, data) => {
   if (!data) return { status: false, message: "No data provided" };
@@ -268,5 +272,180 @@ export const deleteAssignSiteById = async (id) => {
   } catch (e) {
     console.log(e);
     return e.message;
+  }
+};
+
+// This is Big function and Query  is also big
+// we have to find Total employee Cost for Particular site
+export const getEmployeeCostForSite = async (siteId) => {
+  // siteId is Project Site Id
+  try {
+    const pipeline = [
+      {
+        $match: {
+          siteId: new mongoose.Types.ObjectId(siteId),
+        }, // Match the siteId
+      },
+      {
+        $unwind: "$assignTo", // Unwind the assignTo array to handle each assigned employee
+      },
+      {
+        $lookup: {
+          from: "attendances", // Lookup from the attendance collection
+          localField: "assignTo", // Match with the employeeId in the assignTo field
+          foreignField: "employeAttendance.employeeId", // Match with employeeId in employeAttendance
+          as: "assignDetail", // Output the matched documents in a new field assignDetail
+        },
+      },
+      {
+        $unwind: "$assignDetail", // Unwind the assignDetail array to process each record
+      },
+      {
+        $unwind: "$assignDetail.employeAttendance", // Unwind employeAttendance to access the attendance data
+      },
+      {
+        $facet: {
+          employeeWiseTotals: [
+            {
+              $lookup: {
+                from: "employes",
+                localField: "assignDetail.employeAttendance.employeeId",
+                foreignField: "_id",
+                as: "employes",
+              },
+            },
+            { $unwind: "$employes" },
+            {
+              $group: {
+                _id: "$assignDetail.employeAttendance.employeeId", // Group by employeeId for employee-wise results
+                firstName: { $first: "$employes.firstName" },
+                lastName: { $first: "$employes.lastName" },
+                totalHours: { $sum: "$assignDetail.employeAttendance.hours" }, // Sum total hours for each employee
+                totalBreakHours: {
+                  $sum: "$assignDetail.employeAttendance.breakHours",
+                }, // Sum total break hours for each employee
+                totalPay: { $sum: "$assignDetail.employeAttendance.totalPay" }, // Sum total pay for each employee
+                totalExtraHours: {
+                  $sum: "$assignDetail.employeAttendance.extraHours",
+                }, // Sum total extra hours for each employee
+                totalAttendanceHours: {
+                  $sum: "$assignDetail.employeAttendance.totalHours",
+                }, // Sum total attendance hours for each employee
+              },
+            },
+            {
+              $sort: { totalPay: -1 },
+            },
+          ],
+          overallTotal: [
+            {
+              $group: {
+                _id: null,
+                allEmployeeTotalHours: {
+                  $sum: "$assignDetail.employeAttendance.hours",
+                }, // Sum total hours for all employees
+                allEmployeeTotalBreakHours: {
+                  $sum: "$assignDetail.employeAttendance.breakHours",
+                }, // Sum total break hours for all employees
+                allEmployeeTotalPay: {
+                  $sum: "$assignDetail.employeAttendance.totalPay",
+                }, // Sum total pay for all employees
+                allEmployeeTotalExtraHours: {
+                  $sum: "$assignDetail.employeAttendance.extraHours",
+                }, // Sum total extra hours for all employees
+                allEmployeeTotalAttendanceHours: {
+                  $sum: "$assignDetail.employeAttendance.totalHours",
+                }, // Sum total attendance hours for all employees
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    // we have to find Total employee Cost for Particular site
+    const employeeCost = await SiteAssignModel.aggregate(pipeline);
+    console.log(employeeCost);
+  } catch (error) {
+    console.log(error); // we have to find Total employee Cost for Particular site
+    return { status: false, message: "Error Occurred in server problem" }; // we have to find Total employee Cost for Particular site
+  } // we have to find Total employee Cost for Particular site
+};
+
+export const totalCostOfSite = async (siteId) => {
+  try {
+    const pipeline = [
+      {
+        $match: {
+          siteId: new mongoose.Types.ObjectId(siteId),
+        }, // Match the siteId
+      },
+      {
+        $unwind: "$employeAttendance", // Unwind the assignTo array to handle each assigned employee
+      },
+      {
+        $facet: {
+          employeeWiseTotals: [
+            {
+              $lookup: {
+                from: "employes",
+                localField: "employeAttendance.employeeId",
+                foreignField: "_id",
+                as: "employes",
+              },
+            },
+            { $unwind: "$employes" },
+            {
+              $group: {
+                _id: "$employeAttendance.employeeId", // Group by employeeId for employee-wise results
+                firstName: { $first: "$employes.firstName" },
+                lastName: { $first: "$employes.lastName" },
+                totalHours: { $sum: "$employeAttendance.hours" }, // Sum total hours for each employee
+                totalBreakHours: {
+                  $sum: "$employeAttendance.breakHours",
+                }, // Sum total break hours for each employee
+                totalPay: { $sum: "$employeAttendance.totalPay" }, // Sum total pay for each employee
+                totalExtraHours: {
+                  $sum: "$employeAttendance.extraHours",
+                }, // Sum total extra hours for each employee
+                totalAttendanceHours: {
+                  $sum: "$employeAttendance.totalHours",
+                }, // Sum total attendance hours for each employee
+              },
+            },
+            {
+              $sort: { totalPay: -1 },
+            },
+          ],
+          overallTotal: [
+            {
+              $group: {
+                _id: null,
+                allEmployeeTotalHours: {
+                  $sum: "$employeAttendance.hours",
+                }, // Sum total hours for all employees
+                allEmployeeTotalBreakHours: {
+                  $sum: "$employeAttendance.breakHours",
+                }, // Sum total break hours for all employees
+                allEmployeeTotalPay: {
+                  $sum: "$employeAttendance.totalPay",
+                }, // Sum total pay for all employees
+                allEmployeeTotalExtraHours: {
+                  $sum: "$employeAttendance.extraHours",
+                }, // Sum total extra hours for all employees
+                allEmployeeTotalAttendanceHours: {
+                  $sum: "$employeAttendance.totalHours",
+                }, // Sum total attendance hours for all employees
+              },
+            },
+          ],
+        },
+      },
+    ];
+    // we have to find Total employee Cost for Particular site
+    const employeeCost = await AttendanceModel.aggregate(pipeline);
+    return JSON.stringify(employeeCost[0]);
+  } catch (error) {
+    console.log(error);
   }
 };
