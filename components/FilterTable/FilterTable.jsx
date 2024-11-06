@@ -66,11 +66,11 @@ const FilterTable = ({
   return (
     <>
       <div className="flex flex-col">
-        <div className="-m-1.5 overflow-x-auto">
+        <div className="-m-1.5">
           <div className="p-1.5 min-w-full inline-block align-middle">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               {totalData > 0 && (
-                <div className="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 ">
+                <div className="px-6 py-4 flex items-center md:flex md:justify-between md:items-center border-b border-gray-200 ">
                   {/* {children} */}
                   {/* <Search /> */}
                   <div className="mt-1 relative lg:w-64 xl:w-96">
@@ -117,7 +117,7 @@ const FilterTable = ({
                   <Button
                     text={"Export"}
                     cls={
-                      "text-neutral-700 border border-2 border-neutral-600 py-2 px-3 rounded-md text-sm font-semibold hover:bg-neutral-700 hover:text-white"
+                      "text-neutral-700 border border-2 border-neutral-600 py-2 px-3 rounded-md text-sm font-semibold hover:bg-neutral-700 hover:text-white mt-0.5"
                     }
                     type="button"
                     onclick={() => exportCSVFile(attendanceData)}
@@ -134,7 +134,7 @@ const FilterTable = ({
                 />
               ) : (
                 <>
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
                     <FilterAttendanceTableHead
                       attendanceData={attendanceData}
                     />

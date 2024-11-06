@@ -43,6 +43,136 @@ export const SITEFIELD = [
   },
 ];
 
+export const TASKFIELD = [
+  {
+    name: "title",
+    labelText: "Task Title",
+    type: "text",
+    size: true,
+    helperText: "*This title will appear be on task table.",
+    placeholder: "Enter the task title",
+    validationOptions: {
+      required: "task title is required",
+    },
+  },
+  {
+    name: "description",
+    labelText: "Task Description",
+    size: true,
+    type: "textarea",
+    helperText: "*Describe a task",
+    placeholder: "we will be doing like loft conversion...",
+  },
+  {
+    name: "startDate",
+    labelText: "Start Date",
+    type: "date",
+    placeholder: "Start Date",
+    validationOptions: {
+      required: "Start Date is required",
+    },
+  },
+  {
+    name: "dueDate",
+    labelText: "Due Date",
+    type: "date",
+    placeholder: "Due Date",
+    validationOptions: {
+      required: "Due Date is required",
+    },
+  },
+  // If we add  more fields, they will be added here in the same manner as above. if we chnage a field's name, make sure to change
+  {
+    name: "status",
+    labelText: "Task Status",
+    type: "select",
+    options: ["Not Started", "In Progress", "Review", "Completed", "On Hold"],
+    validationOptions: { required: "Task Status is required" },
+  },
+  {
+    name: "priority",
+    labelText: "Priority",
+    type: "select",
+    options: ["Low", "Medium", "High"],
+    validationOptions: { required: "Priority is required" },
+  },
+];
+export const SUBTASKFIELD = [
+  {
+    name: "title",
+    labelText: "Task Title",
+    type: "text",
+    helperText: "*This title will appear be on task table.",
+    placeholder: "Enter the task title",
+    validationOptions: {
+      required: "task title is required",
+    },
+  },
+  {
+    name: "status",
+    labelText: "Task Status",
+    type: "select",
+    options: ["Not Started", "In Progress", "Review", "Completed", "On Hold"],
+    validationOptions: { required: "Task Status is required" },
+  },
+  {
+    name: "startDate",
+    labelText: "Start Date",
+    type: "date",
+    placeholder: "Start Date",
+    validationOptions: {
+      required: "Start Date is required",
+    },
+  },
+  {
+    name: "endDate",
+    labelText: "End Date",
+    type: "date",
+    placeholder: "End Date",
+    validationOptions: {
+      required: "End Date is required",
+    },
+  },
+];
+export const MARKETINGFIELD = [
+  {
+    name: "vendorName",
+    labelText: "Vendor Name",
+    type: "text",
+    helperText: "*This Name will appear be on list.",
+    placeholder: "Enter a Name",
+    validationOptions: {
+      required: "Name is required",
+    },
+  },
+  {
+    name: "title",
+    labelText: "Title",
+    type: "text",
+    helperText: "*This Name will appear be on Market.",
+    placeholder: "Enter a title",
+    validationOptions: {
+      required: "Title is required",
+    },
+  },
+  {
+    name: "paymentDate",
+    labelText: "Payment Date",
+    type: "date",
+    placeholder: "payment Date",
+    validationOptions: {
+      required: "Date is required",
+    },
+  },
+  {
+    name: "status",
+    labelText: "Task Status",
+    type: "select",
+    options: ["Paid", "Pending", "Refund"],
+    validationOptions: { required: "Task Status is required" },
+  },
+];
+
 export const ROLEFIELD = [
   {
     name: "roleName",
@@ -497,5 +627,69 @@ export const ROLETYPEFIELD = [
     type: "textarea",
     helperText: "*Describe Our Role Types",
     placeholder: "On this site we will be doing like loft conversion...",
+  },
+];
+
+export const EXPENSECATEGORYFIELD = [
+  {
+    name: "categoryName",
+    labelText: " Category Name",
+    type: "text",
+    helperText: "*This name appear on expense table.",
+    placeholder: " Enter category name",
+    validationOptions: {
+      required: " Category name is required",
+    },
+  },
+  {
+    name: "categoryBudget",
+    labelText: "Category Budget",
+    type: "number",
+    inputMode: "numeric",
+    placeholder: " Enter the budget",
+    validationOptions: {
+      required: " budget is required",
+      pattern: {
+        value: /^\d+$/,
+        message: "Please enter a valid budget",
+      },
+    },
+  },
+];
+
+export const EXPENSEFIELD = [
+  {
+    name: "expenseDescription",
+    labelText: "Expense Name",
+    type: "text",
+    size: true,
+    helperText: "*This name appear on expense table.",
+    placeholder: " Enter  expense name",
+    validationOptions: {
+      required: " Expense name is required",
+    },
+  },
+  {
+    name: "expenseAmount",
+    labelText: "Expense Amount",
+    type: "number",
+    inputMode: "numeric",
+    placeholder: " Enter the amount",
+    validationOptions: {
+      required: "  Expense amount is required",
+      pattern: {
+        value: /^\d+$/,
+        message: "Please enter a valid  number",
+      },
+    },
+  },
+  {
+    name: "expenseDate",
+    labelText: "Date",
+    type: "date",
+    placeholder: " Select Date",
+    validationOptions: {
+      required: "  Expense amount is required",
+    },
   },
 ];

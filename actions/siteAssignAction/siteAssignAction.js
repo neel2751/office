@@ -57,6 +57,7 @@ export async function getSiteAssign(page, limit, siteId, month) {
         select: { firstName: 1, lastName: 1, _id: 1 },
       })
       .populate({ path: "siteId", select: { siteName: 1, _id: 1 } })
+      .sort({ assignDate: -1 })
       .lean(); // find all the documents in the collection
     const totalCount = await SiteAssignModel.countDocuments({
       // Apply the same date filter as the query above

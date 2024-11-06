@@ -1,0 +1,735 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Send,
+  Clock,
+  Tag,
+  Flag,
+  User,
+  ImagePlus,
+  PictureInPicture,
+  CalendarRange,
+  Donut,
+  Users,
+  Plus,
+  Search,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { useTaskAssignContext } from "@/context/taskContext";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import { TextFormInput } from "@/components/fromInput/FormInput";
+import { Button } from "@/components/ui/button";
+import { TableSiteStatus } from "@/components/Table/Table";
+import { Searchbox } from "@/components/SearchBox";
+import { SubTaskTabel } from "./TaskTable";
+
+const SelectedTask = memo(() => {
+  const {
+    selectedTask,
+    updateTaskStatus,
+    updateTaskPriority,
+    taskStatuses,
+    taskPriorities,
+    mentionOpen,
+    setMentionOpen,
+    mentionSearch,
+    chatInputRef,
+    handleInputChange,
+    handleMention,
+    addChatMessage,
+    chatMessage,
+    uploadImage,
+    toggleSubtaskCompletion,
+    setIsOpenSub,
+    updateSubTaskStatus,
+  } = useTaskAssignContext();
+  return (
+    <Card className="mt-4 xl:lg:max-w-none max-w-max">
+      <CardHeader>
+        <CardTitle className="flex xl:lg:flex-row flex-col justify-between items-center">
+          <span className="mb-4 max-w-max leading-6 xl:lg:mb-0 xl:lg:max-w-none xl:lg:leading-none ">
+            {selectedTask?.title} (SiteName: {selectedTask?.siteId?.siteName})
+          </span>
+          <div className="flex space-x-2">
+            <Select
+              value={selectedTask?.status}
+              onValueChange={(value) => updateTaskStatus(value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {taskStatuses?.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedTask?.priority}
+              onValueChange={(value) => updateTaskPriority(value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {taskPriorities?.map((priority) => (
+                  <SelectItem key={priority} value={priority}>
+                    {priority}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="overflow-scroll">
+        <Tabs defaultValue="details">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="log">Log</TabsTrigger>
+            <TabsTrigger value="images">Images</TabsTrigger>
+          </TabsList>
+          <TabsContent value="details" className="xl:lg:w-full w-max">
+            <Details details={selectedTask} />
+          </TabsContent>
+          <TabsContent value="subtasks" className="xl:lg:w-full w-max">
+            <Subtasks
+              setIsOpenSub={setIsOpenSub}
+              selectedTask={selectedTask}
+              toggleSubtaskCompletion={toggleSubtaskCompletion}
+              taskStatuses={taskStatuses}
+              updateSubTaskStatus={updateSubTaskStatus}
+            />
+          </TabsContent>
+          <TabsContent value="chat" className="xl:lg:w-full max-w-max">
+            <div className="h-96 overflow-scroll">
+              {selectedTask?.chat?.map((msg, index) => (
+                <div
+                  key={index}
+                  className="flex items-start space-x-2 gap-4 mb-2"
+                >
+                  {/* <Avatar>
+                <AvatarFallback>{msg.user[0]}</AvatarFallback>
+              </Avatar> */}
+                  <div>
+                    <p className="font-medium text-muted-foreground text-sm">
+                      {msg.user}
+                      <span className="text-xs text-muted-foreground font-normal ms-2 ">
+                        {new Date(msg.timestamp).toLocaleString()}
+                      </span>
+                    </p>
+                    <p>
+                      {msg.message.split(" ").map((word, i) =>
+                        word.startsWith("@") ? (
+                          <span
+                            key={i}
+                            className="text-green-600 font-medium text-sm bg-green-100 py-1 px-2 rounded-md"
+                          >
+                            {word}
+                          </span>
+                        ) : (
+                          <span className="text-neutral-700 font-medium text-sm">
+                            {" "}
+                            {word}{" "}
+                          </span>
+                        )
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex space-x-2">
+              <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
+                <PopoverTrigger asChild>
+                  <TextFormInput
+                    cls={"sm:!w-96 !w-auto"}
+                    ref={chatInputRef}
+                    type="text"
+                    placeholder="Type a message (use @ to mention)"
+                    value={chatMessage}
+                    onChange={handleInputChange}
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="p-0" side="top" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder={`Search employees for "@${mentionSearch}"`} // Update placeholder with search term
+                    />
+                    <CommandList>
+                      {selectedTask?.assignedTo &&
+                      selectedTask?.assignedTo?.length > 0 ? (
+                        <CommandGroup>
+                          {selectedTask?.assignedTo
+                            .filter((emp) =>
+                              emp?.label
+                                .toLowerCase()
+                                .includes(mentionSearch.toLowerCase())
+                            ) // Filter employees based on search term (case-insensitive)
+                            .map((emp) => (
+                              <CommandItem
+                                key={emp}
+                                onSelect={() => handleMention(emp?.value)}
+                              >
+                                <span>{emp?.label}</span>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      ) : (
+                        <CommandEmpty>No employees found.</CommandEmpty>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Button onClick={addChatMessage} className="mt-1">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="log" className="max-w-max">
+            <div className="h-96 overflow-scroll">
+              {selectedTask?.log.map((entry, index) => (
+                <div key={index} className="mb-2">
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(entry?.timestamp).toLocaleString()}
+                  </span>
+                  <p className="text-sm text-neutral-800">
+                    {entry?.action} by {entry?.user}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="images" className="max-w-max">
+            <div className="grid grid-cols-6 gap-4 mb-4">
+              {selectedTask?.images?.map((img, index) => (
+                <div key={index} className="space-y-2 h-max">
+                  <img
+                    // on click open image in model open  image in model
+                    onClick={() => handleOpenImageModel(img.url)}
+                    src={img.url}
+                    alt={`Task image ${index + 1}`}
+                    className="size-40 h-auto rounded-md"
+                  />
+                  <div className="text-sm text-muted-foreground">
+                    <p>
+                      <User className="inline mr-2 h-4 w-4" />
+                      {img.uploader}
+                    </p>
+                    <p>
+                      <Clock className="inline mr-2 h-4 w-4" />
+                      {new Date(img.uploadTime).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <span className="text-neutral-700 text-sm font-medium">
+                Add a photo or video
+              </span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <label
+                  htmlFor="file"
+                  type="button"
+                  className="text-neutral-400 border-neutral-400 border-dotted border-2 rounded-lg justify-center shrink-0 size-16 flex items-center group hover:border-cyan-800 hover:text-cyan-600 cursor-pointer"
+                >
+                  {/* input file */}
+                  <input
+                    name="file"
+                    id="file"
+                    type="file"
+                    className="sr-only"
+                    onChange={uploadImage}
+                  />
+                  <ImagePlus className="size-5 shrink-0" />
+                </label>
+
+                <button
+                  type="button"
+                  className="text-neutral-400 border-neutral-400 border-dotted border-2 rounded-lg justify-center shrink-0 size-16 flex items-center"
+                >
+                  <PictureInPicture className="size-5 shrink-0" />
+                </button>
+              </div>
+
+              <div className="mt-3">
+                <p className="text-neutral-400 text-xs">
+                  Employee find images and videos more helpful than text alone.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+});
+
+export default SelectedTask;
+
+const Details = memo(({ details }) => {
+  const statuses = [
+    { label: "Subtasks", value: "" }, // Empty value represents total subtasks
+    { label: "In Progress", value: "In Progress" },
+    { label: "Not Started", value: "Not Started" },
+    { label: "Review", value: "Review" },
+    { label: "Completed", value: "Completed" },
+    { label: "On Hold", value: "On Hold" },
+  ];
+  return (
+    <div className="bg-white border-gray-200 border rounded-xl truncate flex-col flex">
+      {/* header */}
+      <div className="p-4 gap-x-3 flex relative">
+        {/* Logo */}
+        <div className="shrink-0">
+          <div className="border border-gray-200 rounded-xl">
+            <div className="justify-center items-center flex size-12">
+              <span className="text-neutral-800 shrink-0 size-6 text-center">
+                {details?.title?.split(" ").join("")[0]}
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* End Logo */}
+        <div className=" truncate grow mt-1">
+          <div className="shrink-0 block">
+            <h4 title="test" className="text-neutral-800 font-medium truncate ">
+              {details?.title}
+            </h4>
+          </div>
+          <div className="pe-5">
+            <span className="text-neutral-600 text-sm block truncate">
+              {details?.description}
+            </span>
+          </div>
+        </div>
+      </div>
+      {/* List */}
+      <div className="py-3 border-gray-200 border-y grid-cols-6 grid divide-x divide-gray-200 ">
+        {statuses.map(({ label, value }) => (
+          <div key={label} className="px-4">
+            <p className="text-neutral-800 font-semibold text-sm">
+              {value
+                ? details?.subtasks?.filter(({ status }) => status === value)
+                    .length || 0
+                : details?.subtasks?.length || 0}
+            </p>
+            <p className="text-neutral-600 text-sm">{label}</p>
+          </div>
+        ))}
+      </div>
+      {/* Basic Info */}
+      <DetailConfig detailConfig={details} />
+    </div>
+  );
+});
+
+const DetailConfig = memo(({ detailConfig }) => {
+  const detailsConfig = [
+    {
+      label: "Category",
+      value: detailConfig?.category?.name || "N/A",
+      Icon: Tag,
+    },
+    {
+      label: "Created By",
+      Icon: User,
+      value: "Neel", // Replace with dynamic data if available
+    },
+    {
+      label: "Created",
+      Icon: Clock,
+      value: detailConfig?.createdAt
+        ? new Date(detailConfig.createdAt).toLocaleString()
+        : "N/A",
+    },
+    {
+      label: "Start Date",
+      Icon: CalendarRange,
+      value: detailConfig?.startDate
+        ? new Date(detailConfig.startDate).toLocaleDateString()
+        : "N/A",
+    },
+    {
+      label: "Due Date",
+      Icon: CalendarRange,
+      value: detailConfig?.dueDate
+        ? new Date(detailConfig.dueDate).toLocaleDateString()
+        : "N/A",
+    },
+    {
+      label: "Status",
+      Icon: Donut,
+      value: <TableSiteStatus title={detailConfig?.status} />,
+    },
+    {
+      label: "Priority",
+      Icon: Flag,
+      value: detailConfig?.priority || "N/A",
+    },
+    {
+      label: "Assignee",
+      Icon: Users,
+      value:
+        detailConfig?.assignedTo?.length > 0
+          ? detailConfig.assignedTo.map((item) => (
+              <span
+                key={item.value}
+                className="text-neutral-800 font-medium text-xs bg-gray-100 py-1 px-2 rounded-lg mr-1"
+              >
+                {item.label}
+              </span>
+            ))
+          : "N/A",
+    },
+  ];
+  return (
+    <div className="p-4 gap-y-3 flex-col flex">
+      {detailsConfig.map(({ label, Icon, value }) => (
+        <DetailInfoRow key={label} Icon={Icon} label={label} value={value} />
+      ))}
+    </div>
+  );
+});
+
+const DetailInfoRow = memo(({ Icon, label, value }) => {
+  return (
+    <div className="gap-x-2 items-center flex">
+      <Icon className="text-neutral-600 size-4" />
+      <p className="text-neutral-600 text-sm min-w-20">{label}</p>
+      <div className="grow">
+        {typeof value === "string" || typeof value === "number" ? (
+          <p className="text-neutral-800 font-medium text-sm">{value}</p>
+        ) : (
+          value
+        )}
+      </div>
+    </div>
+  );
+});
+
+const Subtasks = memo(
+  ({
+    setIsOpenSub,
+    selectedTask,
+    toggleSubtaskCompletion,
+    taskStatuses,
+    updateSubTaskStatus,
+  }) => {
+    const [filter, setFilter] = useState({
+      status: "",
+      assignes: "",
+      search: "",
+    });
+    const [subtasks, setSubtasks] = useState(selectedTask?.subtasks || []); // Subtasks from selected task
+    const [filteredSubtasks, setFilteredSubtasks] = useState(subtasks); // Filtered subtasks
+
+    // Function to filter subtasks based on the current filter state
+    const filterTask = useCallback(() => {
+      const filtered = subtasks?.filter((subtask) => {
+        const { status, assignedTo, title } = subtask;
+        const statusFilter = filter.status;
+        const assignedFilter = filter.assignes;
+        const searchFilter = filter.search.toLowerCase();
+
+        // Check if the assignedFilter matches any object in the assignedTo array
+        const matchAssigned =
+          !assignedFilter ||
+          assignedTo?.some((assignee) => assignee._id === assignedFilter);
+
+        // Filter by status if applied
+        const matchStatus = !statusFilter || status === statusFilter;
+
+        // Filter by search if applied
+        const matchSearch = title.toLowerCase().includes(searchFilter);
+
+        return matchStatus && matchAssigned && matchSearch;
+      });
+
+      // Update the filteredSubtasks state
+      setFilteredSubtasks(filtered);
+    }, [filter, subtasks]);
+
+    // Apply filtering whenever `filter` or `subtasks` changes
+    useEffect(() => {
+      filterTask();
+    }, [filter, subtasks, filterTask]);
+
+    // Update subtasks when `selectedTask` changes
+    useEffect(() => {
+      setSubtasks(selectedTask?.subtasks || []); // Update subtasks when selectedTask changes
+    }, [selectedTask]);
+
+    const button = (
+      <div>
+        <Button onClick={() => setIsOpenSub(true)} variant="outline">
+          <Plus className="text-neutral-700 size-4 mr-2" />
+          <span className="text-neutral-700">Add Subtask</span>
+        </Button>
+      </div>
+    );
+    return (
+      <div className="bg-white border-gray-200 border rounded-xl truncate flex-col flex">
+        {selectedTask?.subtasks.length > 0 && (
+          <div className="p-2 flex gap-2">
+            {button}
+            <div className="relative">
+              <div className="absolute flex items-center ps-2 z-20 start-0 inset-y-0 pointer-events-none">
+                <Search className="size-4 text-neutral-400 shrink-0 mb-0.5" />
+              </div>
+              <input
+                type="text"
+                className={`text-sm ps-7 py-2 text-neutral-700 bg-white rounded-lg w-full block border border-gray-200 outline-none focus:ring-2 focus:ring-cyan-600 transition-all duration-500 ease-in-out  focus:max-w-sm ${
+                  filter.search !== "" ? "max-w-sm" : "max-w-6 hover:max-w-sm"
+                } `}
+                placeholder="Search subtasks"
+                value={filter.search}
+                onChange={(e) =>
+                  setFilter({ ...filter, search: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-500 font-medium">
+                Status:
+              </span>
+              <Select
+                value={filter?.status || "All"}
+                onValueChange={(val) =>
+                  setFilter({
+                    ...filter,
+                    status: val === "All" ? "" : val, // Correct the condition
+                  })
+                }
+              >
+                <SelectTrigger className="max-w-max">
+                  <SelectValue>{filter?.status || "All"}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {["All", ...taskStatuses].map((item, index) => (
+                      <SelectItem key={index} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-500 font-medium">
+                Employee:
+              </span>
+              <div className="max-w-xs">
+                <Searchbox
+                  frameworks={[
+                    { label: "All", value: "All" },
+                    ...selectedTask?.assignedTo,
+                  ]}
+                  value={filter.assignes === "" ? "All" : filter.assignes}
+                  placeholder={
+                    filter.assignes === ""
+                      ? "All"
+                      : selectedTask?.assignedTo?.map((item) => {
+                          if (filter.assignes === item.value) {
+                            return item.label;
+                          }
+                        })
+                  }
+                  onChange={(val) =>
+                    setFilter({ ...filter, assignes: val === "All" ? "" : val })
+                  }
+                  noData={"not assignee found"}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        {filteredSubtasks?.length > 0 ? (
+          <div className="px-2">
+            <SubTaskTabel
+              data={filteredSubtasks}
+              updateSubTaskStatus={updateSubTaskStatus}
+              toggleSubtaskCompletion={toggleSubtaskCompletion}
+              taskStatuses={taskStatuses}
+            />
+          </div>
+        ) : (
+          <div className="text-center p-5 justify-center items-center flex-col flex">
+            <svg
+              className="size-60 mb-4 mx-auto"
+              width="1246"
+              height="898"
+              viewBox="0 0 1246 898"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M199.602 1.05675C176.669 2.12342 160.669 4.12342 156.402 6.39009C152.002 8.79009 151.336 13.5901 151.336 43.3234C151.469 74.1234 152.936 96.5234 155.469 101.057C156.802 103.723 157.069 103.723 159.069 101.723C161.069 99.7234 161.336 94.7901 161.336 58.2568C161.336 30.6568 161.869 16.6568 162.802 15.5901C166.002 12.3901 189.202 11.1901 243.336 11.0568C300.669 11.0568 318.536 12.2568 321.469 16.1234C322.269 17.3234 323.336 22.9234 323.736 28.5234C325.469 49.5901 326.402 106.39 325.336 131.99C324.402 156.257 324.136 158.79 321.469 161.723C317.469 166.39 312.136 167.19 276.669 168.923C247.469 170.257 226.002 173.057 226.002 175.457C226.002 179.857 299.736 178.923 323.069 174.123C327.336 173.323 330.536 171.857 331.336 170.257C335.336 162.923 336.402 33.7234 332.802 16.3901C330.802 7.45675 328.536 5.45675 318.802 3.72342C298.402 0.12342 243.736 -1.07658 199.602 1.05675Z"
+                fill="#525252"
+              />
+              <path
+                d="M602.402 17.8568C599.869 18.7901 600.269 29.8568 603.202 39.0568C604.536 43.3235 606.669 50.2568 607.736 54.2568C608.936 58.2568 611.736 63.7235 613.869 66.2568L617.736 70.9235L618.536 66.2568C619.602 60.7901 616.536 39.0568 613.336 29.5901C609.602 18.2568 607.202 15.8568 602.402 17.8568Z"
+                fill="#525252"
+              />
+              <path
+                d="M227.736 54.3901C226.536 55.8568 226.402 62.7901 227.069 80.1235C227.869 100.257 228.402 104.257 230.269 105.323C233.869 107.59 236.669 104.123 236.669 97.5901C236.669 91.0568 237.736 90.2568 247.202 90.2568C258.936 90.2568 270.002 96.5235 270.002 103.19C270.002 109.057 264.402 110.923 248.402 110.657C235.069 110.39 234.136 110.657 233.202 113.19C231.602 118.257 235.202 119.857 249.469 119.99C264.802 120.257 271.069 118.523 276.002 112.79C281.869 105.723 279.869 93.8568 271.736 87.8568C268.269 85.3235 268.136 84.9235 270.402 83.3235C273.069 81.3235 274.936 74.9235 274.269 70.6568C273.469 65.8568 267.202 60.2568 258.936 57.1901C249.069 53.4568 230.002 51.7235 227.736 54.3901ZM257.602 66.5235C265.469 70.3901 267.469 73.3235 264.269 76.5235C261.469 79.3235 244.669 80.6568 239.069 78.3901C235.602 77.0568 235.336 76.3901 235.336 69.4568V61.8568L243.336 62.6568C247.736 63.0568 254.269 64.7901 257.602 66.5235Z"
+                fill="#525252"
+              />
+              <path
+                d="M552.136 57.5902C550.136 59.1902 550.002 59.9902 551.336 65.1902C552.936 70.7902 555.202 73.9902 567.202 87.5902C573.336 94.6568 575.336 95.4568 578.002 92.2568C581.069 88.5235 563.336 58.2568 556.936 56.6568C555.602 56.2568 553.469 56.6568 552.136 57.5902Z"
+                fill="#525252"
+              />
+              <path
+                d="M954.802 117.724C948.002 120.124 941.069 125.457 937.869 130.79C935.602 134.257 935.202 136.657 935.736 145.057L936.269 155.19L928.136 152.657C917.736 149.324 899.602 148.257 889.336 150.124C862.936 154.924 852.002 173.324 862.669 194.924C868.002 205.857 879.069 216.79 890.936 222.39L900.402 227.057L892.936 230.924C872.802 241.457 851.069 261.457 837.202 282.257C821.336 306.124 814.936 327.057 814.936 354.924C814.802 374.257 816.802 383.99 823.469 397.457C831.736 413.99 846.936 431.457 861.602 441.19L868.402 445.724L859.602 448.79C843.469 454.39 830.536 465.324 825.202 477.724C820.269 489.057 824.269 512.924 831.202 512.924C834.936 512.924 835.736 509.057 833.336 502.257C830.802 494.924 830.802 485.857 833.469 480.657C839.336 469.324 851.869 460.124 865.336 457.19C878.536 454.257 882.936 454.124 896.669 456.124C912.536 458.524 918.802 458.79 920.002 456.924C921.336 454.79 915.202 451.857 900.802 447.59C864.136 436.657 839.736 415.457 827.469 383.857C824.402 375.724 824.136 373.324 824.136 355.59C824.136 338.524 824.669 334.79 827.736 324.257C835.069 299.857 846.402 281.857 866.002 263.19C892.136 238.124 924.402 224.124 963.069 221.057C982.936 219.457 1011.34 221.724 1009.74 224.657C992.802 256.124 992.936 303.724 1009.87 349.99L1013.87 361.057L1003.87 372.657C990.269 388.39 973.202 411.057 964.269 425.59C949.736 449.057 942.936 473.99 945.869 492.257C949.602 514.39 965.069 526.924 988.669 526.657C999.602 526.524 1007.2 524.257 1014.94 519.057C1017.6 517.19 1020.27 516.124 1020.8 516.657C1021.34 517.19 1022.94 521.457 1024.54 526.257C1029.87 542.79 1041.74 557.19 1055.2 563.857C1060.14 566.257 1063.6 566.924 1072.67 566.924C1082.54 566.924 1085.07 566.39 1092 563.057C1101.6 558.257 1113.74 546.657 1117.87 537.99L1120.94 531.59L1125.07 539.99C1131.2 551.857 1149.34 569.857 1160.67 575.324C1182.94 585.99 1205.47 583.057 1219.87 567.59C1230.94 555.857 1237.34 541.324 1242.27 516.79C1244.94 503.324 1245.34 497.724 1245.34 468.257C1245.2 429.857 1243.47 414.79 1235.34 382.924C1224.27 339.59 1201.47 286.924 1179.2 253.457C1166.8 234.924 1143.07 210.79 1128.94 202.524C1109.47 191.19 1088.27 187.19 1074.67 192.39C1064.27 196.39 1064.67 196.524 1064.67 190.124C1064.67 179.59 1056.14 164.79 1040.8 148.657C1026.67 133.59 1008.14 121.857 991.736 117.59C982.136 115.057 961.736 115.19 954.802 117.724ZM970.802 127.057C955.602 132.524 948.669 145.057 952.669 159.59L953.869 164.257L950.536 160.257C948.802 157.99 946.402 153.19 945.202 149.324C943.469 143.324 943.469 141.99 945.202 137.857C948.269 130.39 958.669 125.057 970.002 125.057H976.002L970.802 127.057ZM892.669 159.99C890.136 160.79 885.202 164.257 881.736 167.59C875.469 173.59 875.336 173.99 875.336 181.724C875.336 189.457 878.269 197.59 884.269 206.257C885.469 208.124 883.736 206.924 880.269 203.59C872.936 196.657 867.336 186.39 867.336 179.99C867.336 174.79 869.869 169.324 873.869 165.724C877.202 162.657 889.336 158.257 894.002 158.39C896.802 158.524 896.669 158.79 892.669 159.99ZM1080.14 334.924C1091.6 347.19 1087.87 364.524 1072.67 369.057C1068.27 370.39 1065.47 370.39 1058.94 369.057C1054.4 368.124 1050.27 367.057 1049.74 366.79C1048.54 365.99 1060.94 340.657 1065.6 334.524C1070 328.79 1074.4 328.79 1080.14 334.924ZM1234 500.657C1230.27 530.124 1221.74 552.257 1210.54 562.124C1201.34 570.124 1188.94 573.19 1177.34 570.257C1173.6 569.324 1173.87 569.19 1179.34 569.057C1187.87 568.79 1195.74 564.79 1203.87 556.39C1215.34 544.657 1228 517.057 1232.94 492.924C1235.2 481.457 1236 486.257 1234 500.657Z"
+                fill="#525252"
+              />
+              <path
+                d="M68.6689 125.723C45.4689 126.523 14.6689 128.923 9.6022 130.39C-0.397805 133.057 0.00219479 130.39 0.00219479 206.923C0.00219479 271.857 0.135528 275.457 2.93553 286.924C4.53553 293.59 6.66886 301.057 7.73553 303.59C9.6022 307.857 9.73553 300.657 9.86886 226.123C10.0022 162.657 10.4022 143.59 11.7355 141.99C14.1355 138.657 28.6689 137.057 72.6689 135.457C114.536 133.99 187.602 135.457 194.136 137.99C196.936 139.057 197.869 140.657 198.536 145.19C201.736 164.657 202.936 243.723 200.802 283.724C199.469 306.79 198.269 310.257 190.936 312.924C187.869 314.124 162.136 314.79 103.069 315.457C16.0022 316.257 12.1355 316.524 19.8689 321.59C26.2689 325.857 41.8689 326.524 106.669 325.724C168.669 324.924 197.202 323.457 203.736 321.057C205.869 320.257 207.336 318.39 207.869 315.99C209.869 307.057 211.336 282.524 212.136 246.123C213.469 187.723 210.002 136.257 204.402 130.657C200.669 127.19 184.669 125.99 133.336 125.59C104.802 125.457 75.6022 125.457 68.6689 125.723Z"
+                fill="#525252"
+              />
+              <path
+                d="M507.602 136.257C503.336 139.323 504.269 143.457 510.002 146.39C518.936 151.057 548.536 145.857 549.736 139.457C550.269 136.257 548.136 135.857 528.402 134.923C512.936 134.123 510.269 134.257 507.602 136.257Z"
+                fill="#525252"
+              />
+              <path
+                d="M685.336 152.123C682.402 153.057 675.869 155.723 670.669 157.99C663.069 161.323 658.802 162.257 648.002 162.923C629.069 164.123 621.202 165.857 611.336 171.057C592.136 181.057 571.336 203.457 571.336 214.257C571.336 219.19 575.202 217.057 582.402 207.857C603.602 181.323 622.136 171.723 652.136 171.59C660.002 171.59 663.469 170.79 673.469 166.523C697.602 156.123 704.002 156.39 715.736 168.123C722.402 174.657 728.402 184.257 726.936 185.857C725.869 186.79 722.136 184.523 712.802 177.057C708.136 173.323 702.802 169.857 700.936 169.323C694.136 167.723 676.669 175.59 676.669 180.39C676.669 182.39 677.069 182.39 691.336 178.79C698.669 176.923 698.669 177.057 704.002 180.923C717.469 191.057 725.202 195.59 728.669 195.59C733.069 195.59 736.669 191.857 736.669 187.457C736.669 178.657 721.469 158.123 711.202 152.79C705.336 149.857 693.602 149.457 685.336 152.123Z"
+                fill="#525252"
+              />
+              <path
+                d="M662.002 184.79C662.002 185.457 667.069 188.39 673.202 191.324C685.602 197.324 688.536 200.524 691.869 211.457C694.136 218.924 694.802 233.057 692.936 230.79C692.269 230.124 690.136 225.19 688.136 219.857C685.736 213.724 682.669 208.39 679.736 205.59C672.002 198.124 657.069 193.724 649.602 196.79C647.336 197.59 647.336 197.857 649.069 199.457C650.269 200.39 655.869 203.057 661.602 205.457C671.469 209.59 672.136 210.124 675.736 217.057C679.469 224.524 682.402 239.457 679.736 237.857C678.936 237.324 676.002 232.124 673.202 226.124C666.936 212.79 662.802 210.124 646.669 209.19C637.069 208.657 636.136 208.79 637.736 210.657C638.802 211.857 644.002 215.057 649.469 217.724C658.402 222.124 659.602 223.19 662.802 229.59C668.669 241.857 666.536 242.924 656.536 232.79C647.336 223.457 643.336 221.724 636.136 223.724C629.336 225.724 619.869 225.057 612.402 222.257C607.469 220.39 602.269 219.59 595.336 219.724C579.736 219.724 574.936 221.057 572.936 225.324C569.736 231.857 568.136 281.057 569.869 317.59C571.336 351.057 572.536 358.657 576.402 360.257C580.669 361.99 659.602 363.857 705.336 363.19C757.202 362.524 760.402 361.99 762.402 354.257C764.269 346.924 762.669 261.99 760.402 251.59L758.536 242.924L757.602 250.924C757.069 255.324 756.002 279.59 755.336 304.924C754.536 330.124 753.469 351.324 752.802 351.99C749.602 355.19 662.669 356.124 601.602 353.457L583.202 352.657L581.202 348.657C576.536 339.724 577.602 234.524 582.402 231.19C585.069 229.324 603.469 231.19 612.669 234.257C618.536 236.257 625.469 237.324 633.736 237.59C645.736 237.99 646.269 238.124 651.336 242.79C658.802 249.457 664.269 251.99 669.202 251.057C674.536 249.99 675.336 249.99 679.602 251.057C682.269 251.724 684.002 251.057 686.402 248.657C688.136 246.79 691.469 244.657 693.869 243.724C696.136 242.657 699.202 239.857 700.802 237.324C705.869 229.057 708.136 228.39 727.069 229.19C736.402 229.59 745.469 229.457 747.202 229.057L750.402 228.124L746.936 225.857C742.269 222.924 733.602 221.19 716.269 220.124L702.402 219.19L699.202 209.324C695.336 196.657 689.736 189.99 679.869 186.39C672.402 183.457 662.002 182.657 662.002 184.79Z"
+                fill="#525252"
+              />
+              <path
+                d="M98.0022 191.457C89.2022 200.657 78.0022 233.59 77.6022 251.59C77.3355 259.857 77.4689 260.257 80.5355 260.657C84.4022 261.19 87.3355 257.99 87.3355 253.19C87.3355 251.324 88.5355 244.657 90.1355 238.124L92.9355 226.257H109.469C118.536 226.257 126.002 226.657 126.002 227.057C126.002 227.857 130.802 252.524 132.002 257.857C133.069 262.257 140.269 262.257 141.336 257.857C142.402 253.857 137.602 230.657 132.669 215.057C126.002 194.39 119.202 186.257 108.536 186.257C103.736 186.257 102.136 187.057 98.0022 191.457ZM111.336 196.924C114.002 198.39 118.136 204.79 120.269 211.057C121.736 215.19 121.602 215.324 117.736 216.124C111.069 217.457 96.6689 217.057 96.6689 215.59C96.6689 213.59 103.202 200.657 105.736 197.857C108.136 195.19 108.136 195.19 111.336 196.924Z"
+                fill="#525252"
+              />
+              <path
+                d="M889.069 250.523C882.136 253.857 884.802 262.123 893.602 264.923C901.336 267.457 902.402 268.79 901.602 274.657C900.669 281.723 894.402 293.857 890.536 296.523C887.869 298.257 886.536 298.39 884.002 297.19C879.869 295.323 879.736 291.723 883.469 283.99C886.669 277.323 886.136 274.257 881.602 274.257C877.602 274.257 872.802 282.39 871.736 291.19C871.069 296.923 871.469 298.257 874.669 301.99L878.269 306.257L873.069 308.39C866.936 310.923 863.336 313.99 863.336 316.657C863.336 321.857 883.069 313.857 893.736 304.257C911.469 288.257 915.469 260.79 901.202 252.79C895.602 249.457 892.402 248.923 889.069 250.523Z"
+                fill="#525252"
+              />
+              <path
+                d="M935.736 268.524C933.202 269.457 933.602 276.124 936.402 278.657C937.602 279.724 941.736 281.457 945.336 282.39C954.402 284.524 956.536 285.857 958.002 289.724C959.602 293.857 962.936 295.19 965.602 292.524C970.002 288.257 961.336 275.19 950.402 269.724C946.269 267.724 939.202 267.057 935.736 268.524Z"
+                fill="#525252"
+              />
+              <path
+                d="M622.669 275.19C619.069 276.123 617.869 278.257 619.602 281.323C620.669 283.59 621.869 283.723 628.136 282.923C636.669 281.857 636.536 281.457 637.069 302.923L637.336 317.59L641.069 317.99L644.669 318.39V300.257V281.99L651.069 282.257C654.536 282.523 658.002 282.523 658.802 282.39C661.469 282.123 662.002 278.39 659.869 276.257C658.269 274.657 654.536 274.257 641.602 274.39C632.669 274.523 624.136 274.923 622.669 275.19Z"
+                fill="#525252"
+              />
+              <path
+                d="M682.802 281.057C676.669 288.257 671.069 314.39 674.802 318.257C677.869 321.323 681.202 318.257 681.735 312.123C682.002 309.323 682.535 306.523 683.069 305.99C683.602 305.457 687.869 304.923 692.669 304.79L701.335 304.39L702.669 311.723C704.002 318.257 704.535 318.923 707.869 319.323L711.735 319.857L711.069 311.323C710.002 299.19 706.269 287.19 701.735 281.723C698.269 277.59 697.069 276.923 692.002 276.923C687.202 276.923 685.602 277.59 682.802 281.057ZM697.069 289.99C698.535 292.39 699.335 294.79 698.802 295.19C698.269 295.723 695.069 296.123 691.602 296.123C686.002 296.257 685.335 295.99 685.735 293.59C686.535 289.19 690.002 284.79 692.402 285.19C693.602 285.457 695.735 287.59 697.069 289.99Z"
+                fill="#525252"
+              />
+              <path
+                d="M904.002 298.257C899.469 307.19 899.602 314.257 904.402 319.723C911.602 327.723 925.202 325.99 937.202 315.59C946.136 307.723 940.936 301.057 931.602 308.523C924.536 314.123 921.469 315.59 916.136 315.59C908.802 315.59 907.602 311.857 912.002 302.79C916.002 294.657 915.602 291.59 910.669 291.59C908.002 291.59 906.669 292.923 904.002 298.257Z"
+                fill="#525252"
+              />
+              <path
+                d="M359.336 334.123C350.136 335.19 338.002 339.857 338.002 342.257C338.002 343.19 348.269 343.59 372.402 343.323C408.136 342.923 422.669 343.857 426.936 346.923C429.202 348.657 429.336 351.057 429.069 381.857C428.936 399.99 428.269 418.79 427.736 423.59L426.669 432.123L420.669 433.457C417.336 434.123 400.269 434.79 382.669 434.79C335.602 434.79 338.002 437.19 336.669 390.657C336.002 367.99 335.202 356.39 334.002 354.257L332.269 351.057L329.602 354.39C327.069 357.457 327.069 358.923 327.736 392.923C328.269 412.39 329.069 430.39 329.602 432.923C331.202 439.723 336.669 441.857 356.669 443.723C374.136 445.19 406.669 444.523 422.002 442.123C433.736 440.39 435.336 438.523 436.936 424.79C439.069 408.39 439.069 349.19 437.069 344.657C434.802 339.59 430.669 337.323 420.669 335.723C409.336 333.857 370.402 332.79 359.336 334.123Z"
+                fill="#525252"
+              />
+              <path
+                d="M870.402 359.19C867.069 360.39 868.669 365.857 873.336 369.99C881.336 377.057 893.069 378.79 903.069 374.257C913.069 369.723 908.802 361.457 898.669 365.723C892.002 368.523 884.402 367.057 878.669 362.123C874.269 358.257 873.336 357.857 870.402 359.19Z"
+                fill="#525252"
+              />
+              <path
+                d="M375.869 370.124C361.069 376.79 359.069 398.524 372.402 408.657C376.402 411.724 378.402 412.257 385.336 412.257C397.202 412.257 405.336 406.257 400.136 401.19C398.136 399.19 397.736 399.19 394.136 401.324C388.002 404.924 380.536 404.257 376.402 399.857C372.002 395.19 371.069 390.79 373.202 385.59C376.536 377.724 384.936 374.524 390.802 378.924C394.536 381.724 398.936 381.457 400.002 378.257C401.202 374.657 399.869 373.057 393.469 370.124C386.536 367.057 382.802 367.057 375.869 370.124Z"
+                fill="#525252"
+              />
+              <path
+                d="M720.269 388.923C711.602 390.523 701.202 395.59 703.602 397.057C704.536 397.723 720.402 398.123 738.669 397.99C771.336 397.723 786.269 398.657 790.136 400.923C791.736 401.99 792.002 407.723 791.736 435.19C791.469 453.323 790.936 470.923 790.269 474.257L789.202 480.257L778.669 481.19C765.869 482.257 717.869 480.257 711.336 478.257C702.802 475.723 703.202 477.057 701.869 445.457C700.402 406.79 699.736 402.123 695.869 404.657C690.802 407.99 690.402 416.39 693.202 456.79C694.536 474.523 695.602 483.19 696.936 484.39C699.336 486.79 717.069 488.657 747.736 489.723C774.669 490.523 792.936 489.19 796.136 485.99C798.936 483.323 800.669 460.79 800.802 427.19C800.936 394.123 800.669 393.057 791.069 390.39C784.002 388.39 729.202 387.19 720.269 388.923Z"
+                fill="#525252"
+              />
+              <path
+                d="M594.269 390.123C570.802 391.457 571.202 391.057 569.469 413.59C568.002 432.923 569.869 479.857 572.402 484.523C574.669 488.523 583.202 490.123 609.602 491.057C634.269 491.99 668.136 489.99 673.602 487.323C675.602 486.39 677.736 483.857 678.402 481.59C680.002 476.257 680.002 413.457 678.402 408.257C676.669 402.79 673.469 402.523 671.336 407.59C670.136 410.657 669.869 417.59 670.669 436.123C671.202 449.723 671.202 464.39 670.669 468.923C669.336 479.99 667.736 480.79 640.536 482.39C617.469 483.59 582.536 481.99 580.136 479.59C578.002 477.457 578.136 404.257 580.269 402.123C581.469 400.923 592.802 400.123 619.602 399.457C655.069 398.657 667.336 397.323 667.336 394.257C667.336 390.523 628.269 388.257 594.269 390.123Z"
+                fill="#525252"
+              />
+              <path
+                d="M618.669 420.123C612.936 422.657 609.602 427.057 609.602 431.857C609.602 436.79 611.869 438.657 621.202 441.723C624.936 442.923 629.069 445.057 630.402 446.523C633.069 449.59 633.336 454.39 631.069 456.657C628.536 459.19 618.536 458.523 612.669 455.59C608.002 453.19 607.336 453.19 605.469 455.057C602.536 457.857 602.802 458.923 606.669 461.99C611.069 465.457 622.269 468.123 628.002 467.057C647.202 463.457 645.336 439.457 625.602 434.123C618.136 432.123 617.602 431.723 619.602 429.323C620.802 427.723 622.802 427.457 628.136 428.123C633.469 428.79 635.469 428.39 636.669 426.79C641.069 421.59 626.936 416.257 618.669 420.123Z"
+                fill="#525252"
+              />
+              <path
+                d="M732.669 421.59C731.202 425.457 730.936 447.857 732.136 457.323C733.069 463.457 734.936 465.457 738.669 464.123C740.136 463.457 740.669 461.323 740.669 455.99V448.657L748.936 456.123C757.469 463.857 760.002 464.657 762.536 460.657C763.736 458.657 762.536 456.923 754.669 449.723L745.336 441.19L751.069 436.257C755.069 432.79 756.669 430.39 756.402 428.39C755.869 424.39 751.602 424.123 747.602 427.857C739.602 435.057 739.736 435.057 739.869 426.657C740.002 419.59 739.736 418.923 737.069 418.523C734.802 418.123 733.602 418.923 732.669 421.59Z"
+                fill="#525252"
+              />
+              <path
+                d="M875.336 497.457C860.536 502.123 856.002 504.257 844.136 512.123C831.736 520.39 817.469 532.39 799.336 549.59C777.869 569.99 778.002 569.857 776.669 567.59C775.202 565.323 774.936 554.123 776.136 538.79L777.069 527.857L789.202 527.323C801.469 526.79 808.802 524.523 806.269 521.99C804.536 520.257 778.136 518.123 773.336 519.323C769.602 520.39 769.202 521.057 768.402 528.39C767.869 532.657 767.469 546.123 767.602 558.123L767.869 579.99L760.669 586.657C736.536 608.39 713.469 625.323 695.469 634.257C671.069 646.39 657.869 649.457 629.336 649.323C602.402 649.19 584.936 645.59 579.469 639.057C576.936 636.123 576.536 533.59 579.069 529.323C580.002 527.59 583.069 525.723 586.269 524.79C597.736 521.723 738.136 524.923 741.869 528.39C742.136 528.657 742.802 539.19 743.469 551.857C744.536 573.723 746.402 585.457 748.802 587.057C750.936 588.257 752.002 577.323 752.002 554.923C752.002 528.923 751.069 523.057 746.936 520.257C742.402 517.323 719.469 515.59 663.336 514.123C611.336 512.79 578.136 513.323 574.002 515.59C568.936 518.257 568.269 524.257 567.602 566.523L567.069 607.59L562.936 610.523L558.669 613.323L562.536 609.19L566.536 604.923H561.602C557.602 604.923 555.602 605.99 551.602 609.99C540.536 621.057 544.402 635.323 561.069 644.657C587.202 659.457 639.469 663.723 674.136 654.123C686.802 650.657 702.536 643.057 718.002 632.923C740.802 617.99 757.069 603.99 796.669 565.59C848.669 515.057 866.002 504.923 897.602 506.523C909.336 507.19 930.269 513.057 937.602 517.857C943.202 521.59 940.802 517.59 932.402 509.323C920.269 497.59 914.936 495.19 898.669 494.79C887.736 494.523 883.469 494.923 875.336 497.457Z"
+                fill="#525252"
+              />
+              <path
+                d="M990.669 533.19C991.202 534.923 992.802 537.99 994.269 539.99C1005.47 555.99 1009.34 561.99 1015.74 574.257C1034.27 609.19 1055.74 675.724 1073.87 753.857C1081.34 785.724 1088.27 828.79 1092.67 869.59C1095.2 892.524 1096.4 899.99 1098.94 908.257C1100.54 913.324 1101.74 905.057 1101.87 888.257C1102.27 826.924 1070.94 682.39 1040 603.59C1033.34 586.39 1020.8 560.657 1014.14 550.524C1006.67 539.057 997.602 530.257 993.336 530.257C990.269 530.257 990.002 530.657 990.669 533.19Z"
+                fill="#525252"
+              />
+              <path
+                d="M650.269 567.19C647.336 569.723 645.602 572.523 645.202 575.59C644.269 581.59 647.736 585.057 658.002 588.523C669.736 592.39 672.402 600.79 662.802 603.99C660.269 604.79 657.469 604.523 652.936 602.923C643.202 599.457 640.002 599.59 640.002 603.59C640.002 610.257 657.869 615.457 667.736 611.723C673.736 609.457 676.669 604.923 676.669 598.257C676.669 588.657 672.402 583.723 661.069 579.99C657.202 578.79 654.002 577.323 654.002 576.79C654.002 575.19 659.736 571.59 662.402 571.59C663.736 571.59 666.136 572.523 667.869 573.59C671.869 576.257 675.336 574.923 675.336 570.79C675.336 566.657 669.336 563.59 661.069 563.59C655.869 563.59 653.602 564.39 650.269 567.19Z"
+                fill="#525252"
+              />
+              <path
+                d="M862.269 570.523C860.269 572.523 860.136 580.123 862.002 583.723C863.869 587.057 870.136 587.057 873.069 583.857C876.802 579.723 876.002 574.523 871.069 571.59C866.002 568.523 864.402 568.39 862.269 570.523Z"
+                fill="#525252"
+              />
+              <path
+                d="M544.402 600.924C515.736 609.59 504.002 655.457 519.869 697.457C535.202 738.124 579.069 768.257 637.602 778.257C671.202 783.99 711.336 779.457 759.202 764.257C769.202 761.19 783.336 756.657 790.669 754.39C803.736 750.39 812.402 745.457 809.069 744.124C808.002 743.59 808.669 742.257 811.069 740.124C814.136 737.457 814.402 736.79 812.669 735.59C809.602 733.59 806.002 733.99 797.336 737.724C739.336 762.39 706.669 770.524 665.336 770.657C649.869 770.657 642.402 769.99 632.402 767.857C586.002 757.724 548.269 733.59 534.136 704.79C525.736 687.724 522.802 674.257 523.736 656.257C524.136 645.724 525.202 639.457 527.336 633.99C530.669 625.057 538.402 612.924 545.202 605.99C551.736 599.324 551.602 598.79 544.402 600.924Z"
+                fill="#525252"
+              />
+              <path
+                d="M981.202 631.323C979.069 632.657 976.669 637.723 976.669 640.657C976.669 646.79 986.136 649.857 990.402 645.19C996.402 638.523 988.402 626.523 981.202 631.323Z"
+                fill="#525252"
+              />
+              <path
+                d="M675.602 705.19C674.669 706.123 674.002 709.057 674.002 711.723C674.002 719.99 680.002 723.457 685.736 718.523C689.869 714.923 690.402 711.19 687.202 707.19C684.269 703.323 678.402 702.39 675.602 705.19Z"
+                fill="#525252"
+              />
+              <path
+                d="M783.602 777.99C781.736 779.19 760.802 826.923 752.536 848.657C747.736 861.057 742.002 878.923 735.202 902.257C733.736 907.057 731.736 915.99 730.669 922.123C728.936 931.857 728.936 933.723 730.802 937.99C732.669 942.523 732.802 942.657 734.669 940.123C735.602 938.657 738.002 930.39 740.002 921.857C745.069 899.057 760.002 856.39 774.402 822.923C787.202 793.19 791.469 781.59 790.402 778.523C789.736 776.657 786.136 776.39 783.602 777.99Z"
+                fill="#525252"
+              />
+              <path
+                d="M896.136 781.323C892.802 783.723 893.069 789.857 896.402 793.19C902.002 798.923 910.936 791.723 907.202 784.523C904.402 779.323 900.402 778.123 896.136 781.323Z"
+                fill="#525252"
+              />
+              <path
+                d="M1018.94 896.657C1015.2 900.79 1016.14 905.457 1021.07 908.257C1026.4 911.057 1030.8 909.457 1032.14 904.257C1034.14 896.39 1024.14 890.79 1018.94 896.657Z"
+                fill="#525252"
+              />
+            </svg>
+            <div className="mx-auto">
+              <p className="text-neutral-800 font-medium mt-2">No Subtasks</p>
+              <p className="max-w-sm mx-auto text-neutral-600 text-sm mb-5">
+                No subtask here yet...
+              </p>
+            </div>
+            {button}
+          </div>
+        )}
+      </div>
+    );
+  }
+);

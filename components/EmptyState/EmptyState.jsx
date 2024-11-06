@@ -31,7 +31,7 @@ const EmptyState = ({
   return (
     <div className="container text-black p-5">
       <div
-        className={`${divcls} flex sm:min-h-[650px] min-h-screen flex-col justify-center items-center p-5 text-center`}
+        className={`${divcls} flex max-h-min bg-white flex-col justify-center items-center p-5 text-center rounded-md`}
       >
         <h2 className="text-2xl font-semibold text-neutral-800 mb-3">
           {greeting}, {test?.user?.name}!
@@ -78,7 +78,7 @@ const EmptyState = ({
           </p>
           {btnShow && (
             <Button
-              onclick={onclick}
+              onClick={onclick}
               text={title ? `Add ${title}` : "Add"}
               cls={
                 cls ??

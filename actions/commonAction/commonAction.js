@@ -8,6 +8,7 @@ import {
   createCipheriv,
   createDecipheriv,
 } from "crypto";
+import { differenceInDays } from "date-fns";
 
 export function changeDateToString(date) {
   const options = { year: "numeric", month: "short", day: "numeric" };
@@ -193,37 +194,38 @@ export function encryptionID(id) {
 
 export function encryptId(id) {
   const key =
-    "52bdc56fb0440989d14fad277de68f2221727ae3501ffe3d37607e5684d4be88"; // Generate a random key
-  const iv = randomBytes(16); // Initialization vector
-  const cipher = createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), iv);
-  let encrypted = cipher.update(
-    JSON.stringify({
-      id,
-    }),
-    "utf8",
-    "hex"
-  );
+    "52bdc56fb0440989d14fad277de68f2221727ae3501ffe3d37607e5684d4be88"; // Use a securely generated key
+  const iv = randomBytes(12); // 12-byte IV for AES-GCM
+
+  const cipherKey = Buffer.from(key, "hex");
+  const cipher = createCipheriv("aes-256-gcm", cipherKey, iv);
+  let encrypted = cipher.update(JSON.stringify({ id }), "utf8", "hex");
   encrypted += cipher.final("hex");
-  const encrypt = `${encrypted}?iv=${iv.toString("hex")}`;
+  const authTag = cipher.getAuthTag(); // Get the authentication tag
+  const encrypt = `${encrypted}?iv=${iv.toString(
+    "hex"
+  )}&authTag=${authTag.toString("hex")}`;
   return encrypt;
 }
 
-export function decryptId(encryptedId, iv) {
+export function decryptId(encryptedId, iv, authTag) {
   try {
     const key =
       "52bdc56fb0440989d14fad277de68f2221727ae3501ffe3d37607e5684d4be88";
+    const cipherKey = Buffer.from(key, "hex");
     const decipher = createDecipheriv(
-      "aes-256-cbc",
-      Buffer.from(key, "hex"),
-      iv
-      // Buffer.from(iv, "hex")
-    ); // create a decipher object
-    let decrypted = decipher.update(encryptedId, "hex", "utf8"); // update the decipher object
-    decrypted += decipher.final("utf8"); // final update the decipher object
-    const decryptedId = JSON.parse(decrypted).id; // parse the decrypted string
+      "aes-256-gcm",
+      cipherKey,
+      Buffer.from(iv, "hex")
+    );
+    decipher.setAuthTag(Buffer.from(authTag, "hex"));
+    let decrypted = decipher.update(encryptedId, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    const decryptedId = JSON.parse(decrypted).id;
     return decryptedId;
   } catch (error) {
-    return error;
+    console.error(error);
+    return null;
   }
 }
 
@@ -259,4 +261,52 @@ export function decryptionID(encryptedId) {
     decryptedCode.push(String.fromCharCode(encryptedId.charCodeAt(i) ^ key));
   }
   return decryptedCode.join("");
+}
+
+export function shallowEqual(obj1, obj2) {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // If the number of keys is different, the objects are not equal
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Compare values for each key
+  for (let key of keys1) {
+    if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function countDays(endDate, startDate) {
+  if (!endDate && !startDate) return -1;
+  return differenceInDays(new Date(endDate), new Date(startDate));
+}
+
+export function generateQRCode(data, size) {
+  // Create a canvas for the QR code
+  const qrCode = document.createElement("canvas");
+  qrCode.width = size;
+  qrCode.height = size;
+  const ctx = qrCode.getContext("2d");
+
+  // Determine the size of each module (square) in the QR code
+  const moduleSize = size / data.length;
+
+  // Iterate through the data to draw the QR code
+  for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < data[i].length; j++) {
+      // Set the fill color based on the data (1 = black, 0 = white)
+      ctx.fillStyle = data[i][j] === 1 ? "#000" : "#fff";
+      // Draw the module (square) at the correct position
+      ctx.fillRect(j * moduleSize, i * moduleSize, moduleSize, moduleSize);
+    }
+  }
+
+  // Return the QR code as a data URL
+  return qrCode.toDataURL();
 }

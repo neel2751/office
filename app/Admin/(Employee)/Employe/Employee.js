@@ -146,116 +146,8 @@ const Employee = ({ page }) => {
     setDrawer(false);
   };
 
-  const getWeekNumber = (weekDate) => {
-    // Function to get week number
-    const date = new Date(weekDate); // Create a new date object
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1); // Get the first day of the year
-    const dayOfYear = Math.floor(
-      (date - firstDayOfYear) / (1000 * 60 * 60 * 24)
-    ); // Calculate the day of the year
-    const weekNumber = Math.ceil((dayOfYear + firstDayOfYear.getDay() + 1) / 7); // Calculate the week number
-    return weekNumber; // Return the week number
-  };
-
-  const testNextWeek = () => {
-    const date = new Date(); // Create a new date object
-    const lastDayOfWeeks = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate() + (7 - date.getDay())
-    ); // Get the last day of the week
-    console.log(lastDayOfWeeks, "last day  of week"); // Log the last day of the week
-    const nextWeek = new Date(lastDayOfWeeks);
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      // Loop through the week
-      const weekDate = new Date(nextWeek); // Get the current date
-      weekDates.push(weekDate); // Add the date to the array
-      nextWeek.setDate(nextWeek.getDate() + 1); // Increment the date by one day
-    } // End loop
-    console.log(weekDates, "TestNextWeekData"); // Log the week dates
-  };
-
-  const handleNextWeek = async () => {
-    testNextWeek(); // Call the testNextWeek function
-    // we get whole week like monday to sunday we don't have the getWeekNumber function we have to create from  scratch we nedd whole week dates
-    const ddate = new Date(); // Create a new date object
-    const weekDates = []; // Create an array to store the week dates
-    const startDate = new Date(ddate); // Get the start date of the current week
-    const endDate = new Date(startDate); // Create a copy of the start date
-    endDate.setDate(endDate.getDate() + 6); // Add 6 days to the end date to get the last day of the week
-    for (let i = 0; i < 7; i++) {
-      // Loop through each day of the week
-      const weekDate = new Date(startDate); // Create a new date object for the current day
-      weekDate.setDate(weekDate.getDate() + i); // Set the date to the current day
-      weekDates.push(weekDate); // Add the date to the array
-    } // End of for loop
-    const nextWeekDates = []; // Create an array to store the next week dates
-    const nextStartDate = new Date(endDate); // Get the start date of the next week
-    const nextEndDate = new Date(nextStartDate); // Create a copy of the start date
-    nextEndDate.setDate(nextEndDate.getDate() + 6); // Add 6 days to the end date to get the last day of the week
-    for (let i = 0; i < 7; i++) {
-      // Loop through each day of the next week
-      const nextWeekDate = new Date(nextStartDate); // Create a new date object for the current day
-      nextWeekDate.setDate(nextWeekDate.getDate() + i); // Set the date to the current
-      nextWeekDates.push(nextWeekDate); // Add the date to the array
-    } // End of for loop
-    const nextWeek = nextWeekDates.map((date) => {
-      const weekNumber = getWeekNumber(date); // Get the week number of the current date
-      return { date: date.toISOString().split("T")[0], weekNumber: weekNumber }; // Return an object with the date and week number
-    }); // End of map function
-
-    console.log(weekDates, nextWeek);
-
-    const date = new Date(); // Create a new date object
-    const firstDayOfWeeks = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate() - date.getDay()
-    ); // Get the first day of the week
-    const lastDayOfWeeks = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate() + (7 - date.getDay())
-    ); // Get the last day of the week
-    const nextWeekFirstDay = new Date(
-      firstDayOfWeeks.getTime() + 7 * 24 * 60 * 60 * 1000
-    ); // Get the first day of the next week
-    const nextWeekLastDay = new Date(
-      lastDayOfWeeks.getTime() + 7 * 24 * 60 * 60 * 1000
-    ); // Get the last day of the next week
-    const nextWeeks = {
-      firstDayOfWeek: firstDayOfWeeks,
-      lastDayOfWeek: lastDayOfWeeks,
-      firstDayOfWeekNext: nextWeekFirstDay,
-      lastDayOfWeekNext: nextWeekLastDay,
-    }; // Create an object with the dates of the next week
-    console.log(nextWeeks);
-    return;
-
-    // we get whole week dates
-    const currentDate = new Date();
-    const weekDatess = []; // Create an array to store the week dates
-    const startDates = new Date(currentDate); // Get the start date of the current week
-    const endDates = new Date(currentDate); // Get the end date of the current week
-    const firstDayOfWeek = startDate.getDay(); // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday) of the start date
-    const lastDayOfWeek = 6 - firstDayOfWeek; // Calculate the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday) of the last day of the week
-    const firstDay = new Date(startDate); // Create a new date object for the first day of the week
-    firstDay.setDate(firstDay.getDate() - firstDay.getDay()); // Subtract the day of the week from the start date to get the first day of the week
-    const lastDay = new Date(endDate); // Create a new date object for the last day of the week
-    lastDay.setDate(lastDay.getDate() + lastDay.getDay() - 1); // Add the day of the week to the end date and subtract 1 to get the last day of the week
-    for (let i = 0; i < 7; i++) {
-      // Loop through each day of the week
-      const date = new Date(firstDay); // Create a new date object for the current day
-      date.setDate(date.getDate() + i); // Add the current day to the first day of the week
-      weekDates.push(date.toISOString().split("T")[0]); // Add the current day to the array of week dates
-    } // End of loop
-
-    console.log(weekDates);
-  };
-
   return (
-    <div className="h-full w-full mt-16 bg-gray-50 relative overflow-y-auto lg:ml-64">
+    <div className="h-full w-full mt-16 bg-gray-50 relative overflow-y-auto overflow-scroll lg:ml-64">
       <Breadcrumbs
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -522,86 +414,80 @@ const Employee = ({ page }) => {
       )}
       {/* Table */}
       <div className="flex flex-col">
-        <div className="overflow-x-auto">
-          <div className="align-middle inline-block min-w-full">
-            <div className="shadow overflow-hidden">
-              {employes.length > 0 && (
-                <table className="table-fixed min-w-full divide-y divide-gray-200">
-                  <TableTH data={CONSTANTEMPLOYETABLE} />
-                  {loading ? (
-                    <Shimmer length={9} />
-                  ) : (
-                    <TableBody>
-                      {employes.map((td) => (
-                        <tr key={td._id}>
-                          <td>
-                            <div className="size-8 rounded-full bg-neutral-800 text-white mx-auto flex justify-center items-center text-xs">
-                              {td.firstName.split("")[0]}
-                              {td.lastName.split("")[0]}
-                            </div>
-                          </td>
-                          <TableData
-                            onclick={() => openDrawer(td)}
-                            title={td.firstName}
-                            subTitle={td.lastName}
-                          />
-                          <TableData title={td.phone} />
-                          <TableData title={td.employeType} />
-                          <TableData
-                            title={td.paymentType || "No Payment Type"}
-                          />
-                          <TableData title={"£" + td.payRate.toFixed(2)} />
-                          <TableData title={td.eAddress?.country} />
-                          <TableDataStatus
-                            isActive={td?.isActive}
-                            // handleClick={() => handleActiveStatus(item?._id)}
-                            handleClick={() => handleModel(td._id, "Status")}
-                          />
-                          <TableData title={changeDateToString(td.startDate)} />
-                          <td className="p-4 whitespace-nowrap space-x-2 ">
-                            <TableAction
-                              svg={<PencilSquareIcon className="w-5 h-5" />}
-                              // btnName={`Edit`}
-                              cls="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
-                              handleClick={() => handleEdit(td)}
-                            />
+        <div className="shadow overflow-x-auto">
+          {employes.length > 0 && (
+            <table className=" min-w-full divide-y divide-gray-200">
+              <TableTH data={CONSTANTEMPLOYETABLE} />
+              {loading ? (
+                <Shimmer length={9} />
+              ) : (
+                <TableBody>
+                  {employes.map((td) => (
+                    <tr key={td._id}>
+                      <td>
+                        <div className="size-8 rounded-full bg-neutral-800 text-white mx-auto flex justify-center items-center text-xs">
+                          {td.firstName.split("")[0]}
+                          {td.lastName.split("")[0]}
+                        </div>
+                      </td>
+                      <TableData
+                        onclick={() => openDrawer(td)}
+                        title={td.firstName}
+                        subTitle={td.lastName}
+                      />
+                      <TableData title={td.phone} />
+                      <TableData title={td.employeType} />
+                      <TableData title={td.paymentType || "No Payment Type"} />
+                      <TableData title={"£" + td.payRate.toFixed(2)} />
+                      <TableData title={td.eAddress?.country} />
+                      <TableDataStatus
+                        isActive={td?.isActive}
+                        // handleClick={() => handleActiveStatus(item?._id)}
+                        handleClick={() => handleModel(td._id, "Status")}
+                      />
+                      <TableData title={changeDateToString(td.startDate)} />
+                      <td className="p-4 whitespace-nowrap space-x-2 ">
+                        <TableAction
+                          svg={<PencilSquareIcon className="w-5 h-5" />}
+                          // btnName={`Edit`}
+                          cls="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
+                          handleClick={() => handleEdit(td)}
+                        />
 
-                            <TableAction
-                              svg={<TrashIcon className="h-5 w-5" />}
-                              // btnName={`Delete`}
-                              cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
-                              handleClick={() => handleModel(td._id, "Delete")}
-                              // handleClick={() => getDataEncoding(td._id)}
-                            />
-                            <TableAction
-                              svg={<EyeIcon className="h-5 w-5" />}
-                              // btnName={`Delete`}
-                              cls="text-white bg-neutral-600 hover:bg-neutral-800 focus:ring-4 focus:ring-neutral-300"
-                              link={`${page}/${encryptId(td._id)}`}
-                              // handleClick={() => getDataEncoding(td._id)}
-                            />
-                            {/* <ButtonLink title={"view"} /> */}
-                            {/* <Link
+                        <TableAction
+                          svg={<TrashIcon className="h-5 w-5" />}
+                          // btnName={`Delete`}
+                          cls="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
+                          handleClick={() => handleModel(td._id, "Delete")}
+                          // handleClick={() => getDataEncoding(td._id)}
+                        />
+                        <TableAction
+                          svg={<EyeIcon className="h-5 w-5" />}
+                          // btnName={`Delete`}
+                          cls="text-white bg-neutral-600 hover:bg-neutral-800 focus:ring-4 focus:ring-neutral-300"
+                          link={`${page}/${encryptId(td._id)}`}
+                          // handleClick={() => getDataEncoding(td._id)}
+                        />
+                        {/* <ButtonLink title={"view"} /> */}
+                        {/* <Link
                               className="text-black text-center bg-green-600 size-10"
                               href={`/Admin/Employe/${encryptId(td._id)}`}
                             >
                               Test
                             </Link> */}
-                          </td>
-                        </tr>
-                      ))}
-                    </TableBody>
-                  )}
-                </table>
+                      </td>
+                    </tr>
+                  ))}
+                </TableBody>
               )}
-              <PaginationHelper
-                currentPage={filter.page}
-                pageSize={filter.limit}
-                items={filter.totalCount}
-                onPageChange={handlePageChange} // handlePageChange
-              />
-            </div>
-          </div>
+            </table>
+          )}
+          <PaginationHelper
+            currentPage={filter.page}
+            pageSize={filter.limit}
+            items={filter.totalCount}
+            onPageChange={handlePageChange} // handlePageChange
+          />
         </div>
       </div>
       {isOpenDelete && (

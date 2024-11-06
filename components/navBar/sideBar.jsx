@@ -1,19 +1,20 @@
 "use client";
 import { MENU, getMenu } from "@/data/data";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import NavFoot from "./navFoot";
+import { Search } from "lucide-react";
 
-const SideBar = ({ isSideBarOpen }) => {
+const SideBar = memo(({ isSideBarOpen }) => {
   const pathName = usePathname();
   // if our path is dynamic , we need to get the menu item that matches the path
   const path = pathName.split("/", 3).join("/");
   const { name } = getMenu(path);
   const { data } = useSession();
-  const role = data?.user?.role;
-  const userMenu = MENU.filter((item) => item.role === role);
+  const sessionRole = data?.user?.role;
+  const userMenu = MENU.filter(({ role }) => role.includes(sessionRole));
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -28,7 +29,7 @@ const SideBar = ({ isSideBarOpen }) => {
         <div className="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex-1 px-3 bg-white divide-y space-y-1">
-              <ul className="space-y-2 pb-2">
+              <ul className="space-y-2 pb-16">
                 <li>
                   <form action="#" method="GET" className="lg:hidden">
                     <label htmlFor="mobile-search" className="sr-only">
@@ -36,14 +37,10 @@ const SideBar = ({ isSideBarOpen }) => {
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg
+                        <Search
                           className="w-5 h-5 text-gray-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
+                          aria-hidden="true"
+                        />
                       </div>
                       <input
                         type="text"
@@ -96,11 +93,11 @@ const SideBar = ({ isSideBarOpen }) => {
       ></div>
     </>
   );
-};
+});
 
 export default SideBar;
 
-export const MenuLink = ({ menu, isActive }) => {
+export const MenuLink = memo(({ menu, isActive }) => {
   return (
     <li>
       <Link
@@ -116,4 +113,4 @@ export const MenuLink = ({ menu, isActive }) => {
       </Link>
     </li>
   );
-};
+});

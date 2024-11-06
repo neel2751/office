@@ -1,54 +1,59 @@
 import React, { useId, useState } from "react";
 import Datepicker from "react-datepicker";
 import { useController } from "react-hook-form";
+import { cn } from "@/lib/utils";
 
 import "react-datepicker/dist/react-datepicker.css";
 // # Plain Text  Input Component (with unique ID)
-export const TextFormInput = React.forwardRef(function TextFormInput(
-  {
-    labelText,
-    cls,
-    type,
-    placeholder,
-    value,
-    disabled,
-    errorMsg,
-    inputMode,
-    helperText,
-    ...prop
-  },
-  ref
-) {
-  return (
-    // <div className="relative">
+export const TextFormInput = React.memo(
+  React.forwardRef(function TextFormInput(
+    {
+      labelText,
+      cls,
+      type,
+      placeholder,
+      value,
+      disabled,
+      errorMsg,
+      inputMode,
+      helperText,
+      ...prop
+    },
+    ref
+  ) {
+    return (
+      // <div className="relative">
 
-    <div>
-      {labelText && <Label labelText={labelText} htmlFor={useId()} />}
-      <div className="flex flex-col">
-        <input
-          {...prop}
-          // id={formid}
-          id={labelText}
-          ref={ref}
-          type={type}
-          className={`py-3 px-4 block w-full border text-neutral-800 border-gray-200 rounded-lg text-sm focus:ring-cyan-600 focus:ring-2 disabled:opacity-50 disabled:pointer-events-none outline-none
-        ${cls}`}
-          placeholder={placeholder}
-          value={value && value}
-          autoComplete="off"
-          inputMode={inputMode}
-          disabled={disabled}
-        />
-        <p className="mt-1.5 text-[12px] text-stone-500">{helperText}</p>
-        {errorMsg && (
-          <p className="text-red-600 text-sm mt-1 ml-2" role="alert">
-            {errorMsg}
-          </p>
-        )}
+      <div>
+        {labelText && <Label labelText={labelText} htmlFor={useId()} />}
+        <div className="flex flex-col mt-0.5">
+          <input
+            {...prop}
+            // id={formid}
+            id={labelText}
+            ref={ref}
+            type={type}
+            className={cn(
+              "py-3 px-4 block w-full border text-neutral-800 border-gray-200 rounded-lg text-sm focus:ring-cyan-600 focus:ring-2 disabled:opacity-50 disabled:pointer-events-none outline-none",
+              cls
+            )}
+            placeholder={placeholder || ""}
+            value={value && value}
+            autoComplete="off"
+            inputMode={inputMode}
+            disabled={disabled}
+          />
+          <p className="mt-1.5 text-[12px] text-stone-500">{helperText}</p>
+          {errorMsg && (
+            <p className="text-red-600 text-sm mt-1 ml-2" role="alert">
+              {errorMsg}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  })
+);
 
 // # Select  Form Input Component without Search
 export const Select = React.forwardRef(function Select(
@@ -74,15 +79,16 @@ export const Select = React.forwardRef(function Select(
           ref={ref}
           id={id}
           defaultValue={currentValue}
-          className={`py-3 px-4 w-full border border-gray-200 hover:cursor-pointer text-black rounded-lg text-sm placeholder:text-transparent focus:border-cyan-500 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none ${cls}`}
+          class="sm:leading-6 sm:text-sm outline-none ring-inset  pr-10 pl-3  border border-gray-200 w-full  py-2 px-4 rounded-lg  block mt-2 bg-[url('https://www.svgrepo.com/show/491603/chevron-up-chevron-down.svg')] bg-[center_right_0.5rem] bg-no-repeat bg-[length:1em_1em] appearance-none cursor-pointer focus:ring-2 focus:ring-cyan-500"
+          // className={`py-3 px-4 w-full border border-gray-200 hover:cursor-pointer text-black rounded-lg text-sm placeholder:text-transparent focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none outline-none ${cls}`}
         >
           {!currentValue && (
-            <option value="" hidden>
+            <option className="!text-neutral-400" value="" hidden>
               {placeholder || "Please Select Type"}
             </option>
           )}
           {options?.map((option) => (
-            <option key={option} value={option}>
+            <option className="!text-neutral-800" key={option} value={option}>
               {option}
             </option>
           ))}
@@ -169,11 +175,14 @@ export const RadioSection = React.forwardRef(function RadioSection(
 });
 
 // # In input with no lable provide that we can access it from here...
-export const Label = ({ labelText }) => {
+export const Label = ({ labelText, className }) => {
   return (
     <label
       htmlFor={labelText}
-      className="block mb-2 text-[14px] text-neutral-700 font-medium"
+      className={cn(
+        "block text-[14px] text-neutral-700 font-medium",
+        className
+      )}
     >
       {labelText}
     </label>
@@ -182,7 +191,7 @@ export const Label = ({ labelText }) => {
 
 // # Create TextArea  Component for our form...
 export const Textarea = React.forwardRef(function TextArea(
-  { rows = 6, labelText, helperText, errorMsg, ...props },
+  { rows = 6, labelText, helperText, placeholder, errorMsg, ...props },
   ref
 ) {
   return (
@@ -193,9 +202,11 @@ export const Textarea = React.forwardRef(function TextArea(
           id={labelText}
           ref={ref}
           {...props}
-          className="py-3 px-4 block w-full border text-black border-gray-300 rounded-lg text-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none"
+          className="py-3 px-4 block w-full border text-black border-gray-300 rounded-lg text-sm focus:ring-1  focus:ring-cyan-500 disabled:opacity-50 disabled:pointer-events-none outline-none"
           rows={rows}
-          placeholder="Say hi, we'll be happy to chat with you."
+          placeholder={
+            placeholder || "Say hi, we'll be happy to chat with you."
+          }
           aria-describedby="hs-textarea-helper-text"
         />
         <p className="text-xs text-gray-500 mt-2" id="hs-textarea-helper-text">
@@ -396,6 +407,8 @@ export const DatePickerTest = React.forwardRef(function DatePicker(
         todayButton="Today"
         // isClearable
         shouldCloseOnSelect
+        // popperPlacement="bottom-start"
+        // popperContainer={document?.body}
         customInput={
           <CustomDateInput
             cls={cls}

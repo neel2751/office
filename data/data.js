@@ -8,89 +8,98 @@ import {
   RadioIcon,
   BriefcaseIcon,
   FunnelIcon,
+  MegaphoneIcon,
 } from "@heroicons/react/24/outline";
-import { Network } from "lucide-react";
+import { FolderOpen, Network } from "lucide-react";
 
 export const MENU = [
   {
     name: "Dashboard",
     path: "/",
-    role: "superAdmin", // admin, manager, user
+    role: ["superAdmin", "admin"], // admin, manager, user
     icon: <ChartPieIcon className="w-6 h-6" />,
   },
   {
     name: "Office Employee",
     path: "/Admin/OfficeEmployee",
-    role: "superAdmin", // admin, manager, user
+    role: ["superAdmin"], // admin, manager, user
     icon: <BriefcaseIcon className="w-6 h-6" />,
-  },
-  {
-    name: "Dashboard",
-    path: "/",
-    role: "user",
-    icon: <ChartPieIcon className="w-6 h-6" />,
   },
   {
     name: "All Employe",
     path: "/Admin/Employe",
-    role: "superAdmin",
+    role: ["superAdmin"],
     icon: <ClipboardDocumentListIcon className="h-6 w-6" />,
   },
   {
     name: "Add Employe",
     path: "/Admin/AddEmployee",
-    role: "superAdmin",
+    role: ["superAdmin"],
     icon: <PlusCircleIcon className="h-6 w-6" />,
   },
   {
     name: "Site Project",
     path: "/Admin/SiteProject",
-    role: "superAdmin",
+    role: ["superAdmin"],
     icon: <NewspaperIcon className="h-6 w-6" />,
   },
+  // {
+  //   name: "Attendance",
+  //   path: "/Admin/Attendance",
+  //   role: ["superAdmin"],
+  //   icon: <CalendarDaysIcon className="w-6 h-6" />,
+  // },
+
   {
-    name: "Attendance",
-    path: "/Admin/Attendance",
-    role: "superAdmin",
-    icon: <CalendarDaysIcon className="w-6 h-6" />,
+    name: "SiteAssign",
+    path: "/Admin/SiteAssign",
+    role: ["superAdmin"],
+    icon: <Network className="w-5 h-5" />,
   },
   {
     name: "Filter Attendance",
     path: "/Admin/FilterData",
-    role: "superAdmin",
+    role: ["superAdmin"],
     icon: <FunnelIcon className="w-6 h-6" />,
   },
   {
     name: "RoleTypes",
     path: "/Admin/RoleType",
-    role: "superAdmin",
+    role: ["superAdmin"],
     icon: <ChartPieIcon className="w-6 h-6" />,
   },
   {
     name: "Assign Site",
     path: "/Admin/AssignSite",
-    role: "superAdmin",
+    role: ["superAdmin"],
     submenu: [
       { name: "View Shifts", path: "/shiftview/viewshifts" },
       { name: "Add Employee to Shift", path: "/addEmpToShift" },
     ],
     icon: <RadioIcon className="w-6 h-6" />,
   },
+
   {
-    name: "SiteAssign",
-    path: "/Admin/SiteAssign",
-    role: "superAdmin",
-    icon: <Network className="w-5 h-5" />,
+    name: "Marketing",
+    path: "/Admin/Marketing",
+    role: ["superAdmin"],
+    icon: <MegaphoneIcon className="w-5 h-5" />,
+  },
+  {
+    name: "File Manager",
+    path: "/Admin/FileShare",
+    role: ["superAdmin"],
+    icon: <FolderOpen className="h-6 w-6" />,
   },
   {
     name: "All Role",
     path: "/Admin/Role",
-    role: "admin",
+    role: ["admin"],
     icon: <UserGroupIcon className="h-6 w-6" />,
   },
 ];
 export function getMenu(path) {
-  return MENU.find((item) => item.path === path);
+  return MENU.find((item) => item?.path === path);
 }
 
 export const OPTIONS = [

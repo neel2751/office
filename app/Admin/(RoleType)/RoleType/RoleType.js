@@ -6,8 +6,6 @@ import {
   TableBody,
   TableData,
   TableDataStatus,
-  TableHead,
-  TableHeading,
   TableTH,
 } from "@/components/Table";
 import { useDebounce } from "@/helper/debounceHelper";
@@ -30,6 +28,7 @@ import {
 } from "@/actions/roleTypeAction/roleTypeAction";
 import Popup from "@/components/Popup/Popup";
 import { toast } from "react-toastify";
+import { Breadcrumbs } from "@/components/ChangePassword/ChnagePassword";
 
 const RoleType = ({ page }) => {
   const [isOpen, setIsOpen] = useState(false); // OPEN MODEL STATE
@@ -153,12 +152,18 @@ const RoleType = ({ page }) => {
   return (
     <div className="h-full w-full mt-16 bg-gray-50 relative overflow-y-auto lg:ml-64">
       {/* Header */}
+      <Breadcrumbs
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          {
+            label: `${page.split("/")[2]}s`,
+            href: `${page.split("/")[2]}`,
+            active: true,
+          },
+        ]}
+      />
       <div className="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div className="mb-1 w-full">
-          <TableHeading
-            title={`All ${page.split("/")[2]}`}
-            slug={`All ${page.split("/")[2]}`}
-          />
           <div className="sm:flex">
             <div className="sm:flex items-center sm:divide-x sm:divide-gray-100 mb-3 sm:mb-0">
               <Search

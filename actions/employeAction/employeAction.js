@@ -221,8 +221,14 @@ export const getAllEmployeesForSiteAssign = async () => {
     const response = await EmployeModel.find().select(
       "_id firstName lastName payRate"
     );
-    const data = JSON.stringify(response);
-    return { data };
+    const data = response.map((item) => {
+      return {
+        value: item._id,
+        label: item.firstName + " " + item.lastName,
+        payRate: item.payRate,
+      };
+    });
+    return JSON.stringify(data);
   } catch (error) {
     console.log("Error while fetching all employees for site assign", error);
   }

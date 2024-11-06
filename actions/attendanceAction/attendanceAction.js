@@ -168,7 +168,7 @@ export async function getEmployeeAttendanceData(page, limit, siteId, month) {
       })
       .populate({ path: "siteId", select: { siteName: 1, _id: 1 } })
       .lean(); // find all the documents in the collection
-    const totalCount = await SiteAssignModel.countDocuments({
+    const totalCount = await AttendanceModel.countDocuments({
       // Apply the same date filter as the query above
       ...query,
     });

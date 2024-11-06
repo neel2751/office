@@ -31,7 +31,7 @@ import { Edit } from "lucide-react";
 const SiteTabel = () => {
   return (
     <>
-      <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
+      {/* <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
@@ -39,9 +39,9 @@ const SiteTabel = () => {
               Here&apos;s a list of Assign Site for this month!
             </p>
           </div>
-        </div>
-        <DataTable />
-      </div>
+        </div> */}
+      <DataTable />
+      {/* </div> */}
     </>
   );
 };
@@ -69,7 +69,7 @@ const DataTable = () => {
   return (
     <>
       <Card className="bg-white rounded-lg shadow-md p-2 overflow-scroll">
-        <div className="flex space-x-4 items-center justify-center">
+        <div className="flex space-x-6 items-center justify-center">
           {months.map((month, index) => (
             // we get current month active
             <Button
@@ -102,9 +102,14 @@ const DataTable = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {[{ label: "All", value: "All" }, ...site]?.map((item) => (
-                  <SelectItem value={item.value}> {item.label} </SelectItem>
-                ))}
+                {[{ label: "All", value: "All" }, ...site]?.map(
+                  (item, index) => (
+                    <SelectItem key={index} value={item.value}>
+                      {" "}
+                      {item.label}{" "}
+                    </SelectItem>
+                  )
+                )}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -182,7 +187,7 @@ const DataTable = () => {
             <strong>
               {filter.page}-{filter.limit}
             </strong>{" "}
-            of <strong>{filter.totalCount}</strong> products
+            of <strong>{filter.totalCount}</strong> entries
           </div>
           {filter.totalCount > 10 && (
             <div className="flex items-center space-x-2">

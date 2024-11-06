@@ -20,8 +20,6 @@ import SiteTabel from "./SiteTabel";
 import { Button } from "@/components/ui/button";
 import { chnageDateToISOString } from "@/actions/commonAction/commonAction";
 import { SiteAssignContext } from "@/context/siteAssignContext";
-import { TableAction, TableBody, TableData } from "@/components/Table";
-import { Pencil } from "lucide-react";
 import AssignAttendance from "./AssignAttendance";
 import { getEmployeeAttendanceData } from "@/actions/attendanceAction/attendanceAction";
 
@@ -104,7 +102,7 @@ const SiteAssign = () => {
       );
       const convert = JSON.parse(response?.data);
       setAssignSite(convert);
-      console.log(convert);
+      console.log(response.totalCount);
       setFilter({ ...filter, totalCount: response?.totalCount });
     } catch (error) {
       console.error("Error fetching assigned sites:", error);
@@ -161,8 +159,18 @@ const SiteAssign = () => {
     }
   };
   return (
-    <div className="p-4">
-      <Card className="max-w-7xl mx-auto">
+    <div className="h-full flex-1 flex-col space-y-8 sm:p-8 p-4 md:flex max-w-7xl mx-auto">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="sm:text-2xl text-xl font-bold tracking-tight">
+            Welcome back!
+          </h2>
+          <p className="text-muted-foreground">
+            Here&apos;s a list of Assign Site for this month!
+          </p>
+        </div>
+      </div>
+      <Card>
         <CardHeader>
           <CardTitle>Assign Employe</CardTitle>
           <CardDescription>
@@ -204,7 +212,7 @@ const SiteAssign = () => {
                 date={filterForEdit.aDate}
               />
               <div className="flex gap-4 mt-4">
-                <Button>{filterForEdit.id ? "Edit" : "Submit"}</Button>
+                {/* <Button>{filterForEdit.id ? "Edit" : "Submit"}</Button> */}
                 {filterForEdit.id && (
                   <Button variant="outline" onClick={handleReset}>
                     Cancel
@@ -231,15 +239,8 @@ const FetchEmploye = () => {
   const fetchData = async () => {
     const response = await getAllEmployeesForSiteAssign();
     // we need only name and id we have to convert json  to object
-    const convert = JSON.parse(response.data);
-    const data = convert.map((item) => {
-      return {
-        value: item._id,
-        label: item.firstName + " " + item.lastName,
-        payRate: item.payRate,
-      };
-    });
-    setEmployee(data);
+    const convert = JSON.parse(response);
+    setEmployee(convert);
   };
   useEffect(() => {
     fetchData();

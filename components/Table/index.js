@@ -1,5 +1,4 @@
 import {
-  TableHeading,
   TableHead,
   TableTH,
   TableBody,
@@ -9,7 +8,6 @@ import {
 } from "./Table";
 
 export {
-  TableHeading,
   TableHead,
   TableTH,
   TableBody,

@@ -1,5 +1,5 @@
 "use client";
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { changeDateToString } from "@/actions/commonAction/commonAction";
 import {
@@ -17,6 +17,10 @@ import {
   getEmpSummaryData,
 } from "@/actions/dashboardAction/dashboardAction";
 import Link from "next/link";
+import { ComboboxDemo } from "../ComboBox";
+import { Textarea } from "../fromInput/FormInput";
+import { ChevronRight, Home } from "lucide-react";
+import { Button } from "../ui/button";
 
 const ChnagePassword = () => {
   return (
@@ -3581,32 +3585,12 @@ export const UserTable = () => {
 
 export const Breadcrumbs = ({ breadcrumbs }) => {
   return (
-    <div className="sticky top-0 inset-x-0 bg-white border-y px-4 sm:px-6 lg:px-8 mt-1.5">
+    <div className="sticky top-0 inset-x-0 bg-white border-y px-4 mt-1.5">
       <div className="flex items-center py-2">
         {/* <!-- Navigation Toggle --> */}
-        <button
-          type="button"
-          className="size-8 flex justify-center items-center gap-x-2 border border-gray-200 text-gray-800 hover:text-gray-500 rounded-lg focus:outline-none focus:text-gray-500 disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <span className="sr-only">Toggle Navigation</span>
-
-          <svg
-            className=" shrink-0 size-4"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-        </button>
-
+        <Button variant="outline" size="icon" className="size-8 rounded-lg">
+          <Home className="shrink-0 size-4" />
+        </Button>
         {/* <!-- End Navigation Toggle --> */}
 
         {/* <!-- Breadcrumb --> */}
@@ -3621,21 +3605,7 @@ export const Breadcrumbs = ({ breadcrumbs }) => {
                 {item.label}
                 {/* we don't need  the separator for the last item */}
                 {index < breadcrumbs.length - 1 && (
-                  <svg
-                    className="shrink-0 mx-3 overflow-visible size-2.5 text-gray-400"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <ChevronRight className="shrink-0 mx-1 overflow-visible size-5 text-gray-400" />
                 )}
               </li>
             </Link>
@@ -3721,22 +3691,61 @@ export const CustomeDropdown = () => {
   );
 };
 
-export const WeekCalendarWithListEvent = ({
-  dates,
-  handleNextWeek,
-  handlePrevWeek,
-}) => {
+export const WeekCalendarWithListEvent = () => {
+  const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const [activeDate, setActiveDate] = useState(new Date()); // Current selected date
+  const [dates, setDates] = useState([]); // Dates of the current week
+  const [isOpen, setIsOpen] = useState(false);
+
+  const getCurrentWeekDates = (date) => {
+    let week = [];
+    const curr = new Date(date); // Clone date to avoid mutation issues
+    const firstDayOfWeek =
+      curr.getDate() - (curr.getDay() === 0 ? 6 : curr.getDay() - 1);
+
+    // Loop through the days of the week starting from Monday
+    for (let i = 0; i < 7; i++) {
+      const weekDate = new Date(curr);
+      weekDate.setDate(firstDayOfWeek + i); // Set the date for each day of the week
+      week.push(new Date(weekDate)); // Push a cloned date instance to avoid mutation
+    }
+    return week;
+  };
+
+  // Handler to get the next week
+  const handleNextWeek = () => {
+    const nextWeek = new Date(activeDate.setDate(activeDate.getDate() + 7));
+    setActiveDate(nextWeek); // Update the activeDate to the next week's Monday
+  };
+
+  // Handler to get the previous week
+  const handlePrevWeek = () => {
+    const prevWeek = new Date(activeDate.setDate(activeDate.getDate() - 7));
+    setActiveDate(prevWeek); // Update the activeDate to the previous week's Monday
+  };
+
+  useEffect(() => {
+    const weekDates = getCurrentWeekDates(activeDate);
+    setDates(weekDates); // Set the state to the current week's dates
+  }, [activeDate]);
+
+  const handleDateClick = (date) => {
+    setActiveDate(date);
+  };
+
   return (
-    <div className="max-w-2xl w-full mx-auto">
+    <div className="">
       <div class="shadow bg-white border-gray-200 border rounded-xl flex-col flex">
         {/* <!-- Header --> */}
         <div class="p-5 gap-2 flex justify-between items-center border-b border-gray-200">
-          <h2 class="text-neutral-800 font-semibold inline-block">Events</h2>
+          <h2 class="text-neutral-800 font-semibold inline-block">Task</h2>
 
           {/* <!-- Form Group --> */}
           <div class="sm:justify-end gap-x-2 items-center flex">
             {/* <!-- Button --> */}
             <button
+              onClick={() => setIsOpen(true)}
               type="button"
               class="text-white font-medium text-xs p-2 bg-cyan-600 border-transparent border rounded-md items-center inline-flex"
             >
@@ -3755,7 +3764,7 @@ export const WeekCalendarWithListEvent = ({
                 <path d="M5 12h14"></path>
                 <path d="M12 5v14"></path>
               </svg>
-              Add event
+              Add task
             </button>
             {/* <!-- End Button --> */}
           </div>
@@ -3765,7 +3774,9 @@ export const WeekCalendarWithListEvent = ({
 
         {/* <!-- Body --> */}
         <div class="p-5">
-          <h2 class="text-neutral-800 font-semibold text-sm">March 29, 2023</h2>
+          <h2 class="text-neutral-800 font-semibold text-sm">
+            {changeDateToString(activeDate)}
+          </h2>
 
           {/* <!-- Weekly Calendar --> */}
           <div class="sm:gap-x-1 p-1 bg-white border-neutral-200 border rounded-xl gap-x-0.5 justify-between items-center flex mt-2">
@@ -3792,60 +3803,31 @@ export const WeekCalendarWithListEvent = ({
             {/* calc width of this div */}
             <div className=" overflow-scroll w-full">
               <div className="sm:gap-x-1 p-1 bg-white gap-x-0.5 items-center flex sm:w-full w-96 flex-none overflow-scroll">
-                <button
+                {/* <button
                   type="button"
                   class="opacity-50 pointer-events-none text-neutral-600 text-sm rounded-lg  h-12  hover:bg-neutral-100 w-full"
                   disabled=""
                 >
                   <span class="block">Mon</span>
                   <span class="block">27</span>
-                </button>
-                <button
-                  type="button"
-                  class="text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
-                >
-                  <span class="block">Tue</span>
-                  <span class="block">28</span>
-                </button>
+                </button> */}
+
                 {dates?.map((date) => (
                   <button
+                    onClick={() => handleDateClick(date)}
                     type="button"
-                    class="text-sm rounded-lg w-full h-12  hover:bg-neutral-100 bg-cyan-500/10 text-cyan-500 dark:focus:bg-blue-500/20"
+                    class={`text-sm rounded-lg w-full h-12   ${
+                      date.getDate() === activeDate.getDate()
+                        ? "bg-cyan-500/10 text-cyan-500 font-semibold"
+                        : "text-neutral-600 hover:bg-neutral-100"
+                    }  dark:focus:bg-blue-500/20`}
                   >
-                    <span class="block">{date.day || new Date().getDay()}</span>
-                    <span class="block font-semibold">
-                      {date.date || new Date().getDate()}
+                    <span class="block">
+                      {weekday[date.getDay()] || new Date().getDay()}
                     </span>
+                    <span class="block">{date.getDate()}</span>
                   </button>
                 ))}
-                <button
-                  type="button"
-                  class="text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
-                >
-                  <span class="block">Thu</span>
-                  <span class="block">30</span>
-                </button>
-                <button
-                  type="button"
-                  class="sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
-                >
-                  <span class="block">Fri</span>
-                  <span class="block">31</span>
-                </button>
-                <button
-                  type="button"
-                  class=" sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
-                >
-                  <span class="block">Sat</span>
-                  <span class="block">01</span>
-                </button>
-                <button
-                  type="button"
-                  class="sm:block text-neutral-600 text-sm rounded-lg w-full h-12  hover:bg-neutral-100"
-                >
-                  <span class="block">Sun</span>
-                  <span class="block">02</span>
-                </button>
               </div>
             </div>
             <button
@@ -3932,6 +3914,164 @@ export const WeekCalendarWithListEvent = ({
           </div>
         </div>
         {/* <!-- End Body --> */}
+      </div>
+      {/* Add Task Model */}
+      <div
+        class={`overflow-x-hidden overflow-y-auto w-full z-50 top-0 start-0 fixed pointer-events-none bg-black/20 h-full ${
+          isOpen ? "flex" : "hidden"
+        }`}
+      >
+        <div class="mt-7 duration-500 h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center max-w-md mx-auto w-full m-3">
+          <div class="relative shadow-[0_10px_40px_10px_rgba(0,0,0,0.08)] bg-white rounded-xl overflow-hidden flex-col w-full max-h-full flex pointer-events-auto ">
+            <div class="flex items-center py-2.5 px-4 border-b justify-between">
+              <h3
+                id="hs-pro-dupfmsh-label"
+                class="text-neutral-800 font-medium"
+              >
+                Add the task
+              </h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                type="button"
+                class="text-neutral-800 bg-gray-100 rounded-full gap-x-2 justify-center items-center size-8 inline-flex"
+                aria-label="Close"
+                data-hs-overlay="#hs-pro-dupfmsh"
+              >
+                <span class="sr-only">Close</span>
+                <svg
+                  class="shrink-0 size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="bgcuw zq2x8 oasqe c7c11 iz02v dark:[&amp;::-webkit-scrollbar-track]:bg-neutral-700 dark:[&amp;::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <form>
+                <div class="p-4 space-y-4">
+                  <div class="relative">
+                    <ComboboxDemo
+                      placeholder={"Select Employee..."}
+                      noData={"No employe found"}
+                    />
+                  </div>
+                  <Textarea
+                    placeholder={"Add a message, if you’d like."}
+                    rows={3}
+                  />
+
+                  <div class=" p-3 border border-gray-200 rounded-md gap-x-3 items-center flex justify-center">
+                    <img
+                      class="object-cover rounded-md size-10"
+                      src="https://images.unsplash.com/photo-1635776062127-d379bfcba9f8?ixlib=rb-4.0.3&amp;ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;auto=format&amp;fit=crop&amp;w=320&amp;q=80"
+                      alt="Media Image"
+                    />
+
+                    <div class="flex-grow truncate">
+                      <p class="block truncate text-neutral-800 font-semibold text-sm">
+                        gradient.png
+                      </p>
+                      <p class="block truncate text-neutral-500 text-xs">
+                        James Sep 2nd, 2022
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-4 gap-x-2 justify-between flex">
+                  <div class="w-full">
+                    <input
+                      id="hs-mshfctc"
+                      type="text"
+                      class="hidden"
+                      value="https://www.figma.com/community/file/1179068859697769656"
+                    />
+
+                    <button
+                      type="button"
+                      class="text-neutral-900 font-medium text-xs py-2 px-2.5 bg-gray-100 rounded-lg gap-x-1 justify-center items-center inline-flex"
+                      data-clipboard-target="#hs-mshfctc"
+                      data-clipboard-action="copy"
+                      data-clipboard-success-text="Link copied"
+                    >
+                      <svg
+                        class="shrink-0 size-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                      </svg>
+                      <span class="js-clipboard-success-text">Copy link</span>
+                    </button>
+                  </div>
+
+                  <div class=" flex items-center gap-2 justify-end flex-1">
+                    <button
+                      type="button"
+                      class="shadow-sm text-neutral-800 font-medium text-sm align-middle text-start py-2 px-3 bg-white border border-gray-200 rounded-md text-nowrap justify-center items-center inline-flex"
+                      data-hs-overlay="#hs-pro-dupfmsh"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="button"
+                      class="shadow-sm text-white font-medium text-sm align-middle text-start py-2 px-3 bg-cyan-600  rounded-md text-nowrap justify-center items-center inline-flex"
+                      data-hs-overlay="#hs-pro-dupfmsh"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TipsWithEmoji = () => {
+  return (
+    <div className="max-w-xl w-full mx-auto">
+      <div className="mt-8">
+        <div className="sm:ps-16 p-4 bg-gradient-to-r from-[#ffedd5] via-[#e9d5ff] via-70% to-[#c7d2fe] rounded-md overflow-hidden mb-5 relative">
+          <div className="flex items-center gap-x-3">
+            <div className="hidden sm:block -start-4 -bottom-2 absolute">
+              <div className="text-7xl">🏕️</div>
+            </div>
+            <div className="grow">
+              <h4 className="text-orange-700 font-medium">
+                Choose Your Rating
+              </h4>
+              <p className="text-neutral-800 text-xs mt-1">
+                Your rating will help us improve our services
+              </p>
+            </div>
+            <button className="text-neutral-800 text-xs border-transparent rounded-full gap-x-1 justify-center items-center inline-flex size-7">
+              <X className="shrink-0 size-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

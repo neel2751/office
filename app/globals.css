@@ -67,3 +67,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.react-datepicker-popper {
+  z-index: 9999 !important; /* Ensure the date picker popup is above everything else */
+}

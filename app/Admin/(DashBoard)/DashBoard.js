@@ -43,7 +43,7 @@ const DashBoard = () => {
     <>
       {/* <FilterTableLine /> */}
       <InfoCard />
-      <ComboboxDemo />
+      {/* <ComboboxDemo /> */}
     </>
   );
   // return <ChnagePassword />;
@@ -193,7 +193,7 @@ const AddOfficeRole = () => {
       {/* Header */}
       <div className="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div className="mb-1 w-full">
-          <TableHeading title="Office Employee" slug="OfficeEmploye" />
+          {/* Table Heading */}
           <div className="sm:flex">
             <div className="sm:flex items-center sm:divide-x sm:divide-gray-100 mb-3 sm:mb-0">
               <Search

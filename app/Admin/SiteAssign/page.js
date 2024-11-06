@@ -1,21 +1,13 @@
-"use client";
-import React from "react";
-import NavBar from "@/components/navBar/navBar";
-import SideBar from "@/components/navBar/sideBar";
-import AuthProvider from "@/components/AuthProvider/AuthProvider";
 import SiteAssign from "./SiteAssign";
+import MainWrapper from "@/app/(Main)/Main";
 
 const page = () => {
   return (
-    <AuthProvider>
-      <NavBar />
-      <div className="flex overflow-hidden bg-white pt-10">
-        <SideBar />
-        <div className="h-full w-full mt-5 relative overflow-y-auto lg:ml-64">
-          <SiteAssign />
-        </div>
+    <MainWrapper>
+      <div className="h-full w-full sm:mt-20 mt-12 relative overflow-y-auto lg:ml-64">
+        <SiteAssign />
       </div>
-    </AuthProvider>
+    </MainWrapper>
   );
 };
 

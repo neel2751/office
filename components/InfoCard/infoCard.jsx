@@ -109,8 +109,8 @@ const InfoCard = () => {
   return (
     <>
       {/* Office Employee Data */}
-      {memoizedEmployeeData?.map((test) => (
-        <EmployeeDataCount memoizedEmployeeData={test} />
+      {memoizedEmployeeData?.map((test, index) => (
+        <EmployeeDataCount key={index} memoizedEmployeeData={test} />
       ))}
       <main className="flex flex-1 flex-col gap-4 px-4 md:gap-x-8 md:px-8 py-4">
         <h1 className="text-lg font-semibold md:text-md text-neutral-700 ms-2">
@@ -120,6 +120,7 @@ const InfoCard = () => {
           {memoizedSiteData?.statuses?.map((test, index) => {
             return (
               <CardInfo
+                key={index}
                 id={index}
                 title={test._id}
                 value={test.count}
@@ -128,7 +129,7 @@ const InfoCard = () => {
           })}
         </div>
       </main>
-      <div className="px-8 py-4 lg:flex gap-x-8 w-full">
+      <div className="sm:px-8 px-4 py-4 lg:flex gap-x-8 w-full">
         <div className="flex flex-col lg:w-1/2 gap-8">
           <div className="flex gap-8">
             <TodayCard
@@ -145,7 +146,7 @@ const InfoCard = () => {
           <DateWiseChart dayData={memoizedChartData} />
           {/* <ChartComponent chartData={chartData} /> */}
         </div>
-        <div className="lg:w-1/2">
+        <div className="lg:w-1/2 sm:mt-0 mt-8">
           <RecentAttendance data={memoizedToday?.employees} />
         </div>
       </div>
@@ -457,7 +458,8 @@ const RecentAttendance = ({ data }) => {
           <CardDescription>Recent Attendance from you.</CardDescription>
         </div>
         <ButtonLink
-          href="#"
+          href={""}
+          // onclick={getSession}
           title={"View All"}
           cls={
             "inline-flex whitespace-nowrap ml-auto gap-1 items-center rounded-md text-xs h-8 px-3 text-white hover:bg-neutral-700"
@@ -518,14 +520,14 @@ const RecentAttendance = ({ data }) => {
 
 const TodayCard = ({ title, description, value, supportText }) => {
   return (
-    <Card className="max-w-xs" x-chunk="charts-01-chunk-6">
+    <Card className="max-w-xs w-full" x-chunk="charts-01-chunk-6">
       <CardHeader className="p-4 pb-0">
         <CardTitle>{title}</CardTitle>
-        <CardDescription>
+        <CardDescription className="sm:block hidden">
           You're burning an average of 754 calories per day. Good job!
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-2">
+      <CardContent className="flex sm:flex-row flex-col items-baseline gap-4 p-4 pt-2">
         <div className="flex items-baseline gap-2 text-2xl font-bold tabular-nums leading-none">
           {title.toLowerCase().split(" ").join("") === "totalhours"
             ? value

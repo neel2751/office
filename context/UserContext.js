@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 export const AdminContext = createContext();
 export const AdminProvider = ({ children }) => {
   const { data: session } = useSession(); // get the user session
-  console.log(session);
+  // console.log(session);
   return (
     <AdminContext.Provider value={session}>{children}</AdminContext.Provider>
   );

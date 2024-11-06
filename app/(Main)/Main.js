@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import AuthProvider from "@/components/AuthProvider/AuthProvider";
 // import TestBar from "@/components/navBar/testBar";
 
-const page = ({ children }) => {
+const MainWrapper = ({ children }) => {
   const router = usePathname();
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
@@ -21,7 +21,7 @@ const page = ({ children }) => {
   return (
     <AuthProvider>
       <div className="flex bg-white">
-        <NavBar toggleSidebar={toggleSidebar} />
+        <NavBar toggleSidebar={toggleSidebar} isSideBarOpen={isSideBarOpen} />
         <SideBar isSideBarOpen={isSideBarOpen} />
         {childrenWithProps}
       </div>
@@ -29,4 +29,4 @@ const page = ({ children }) => {
   );
 };
 
-export default page;
+export default MainWrapper;

@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function Searchbox({
+export const Searchbox = React.memo(function Searchbox({
   value,
   onChange,
   frameworks,
@@ -84,4 +84,4 @@ export function Searchbox({
       </PopoverContent>
     </Popover>
   );
-}
+});

@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-export function ComboboxDemo({
+export const ComboboxDemo = React.memo(function ComboboxDemo({
   value,
   onChange,
   frameworks,
@@ -38,7 +38,7 @@ export function ComboboxDemo({
     onChange(value.filter((val) => val !== employeeValue));
   };
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover open={open} onOpenChange={handleOpenChange} className="z-[80]">
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -48,7 +48,7 @@ export function ComboboxDemo({
             value?.length > 0 ? "text-neutral-900" : "text-neutral-500"
           }`}
         >
-          <div className="flex gap-2 justify-start w-full flex-wrap">
+          <div className="flex gap-2 justify-start w-full flex-wrap z-50">
             {value?.length > 0
               ? value.map((val, i) => (
                   <div
@@ -79,7 +79,6 @@ export function ComboboxDemo({
             if (!item) return 0;
             if (item.label.toLowerCase().includes(search.toLowerCase()))
               return 1;
-
             return 0;
           }}
         >
@@ -114,4 +113,4 @@ export function ComboboxDemo({
       </PopoverContent>
     </Popover>
   );
-}
+});

@@ -277,8 +277,8 @@ const AddOfficeRole = ({ page }) => {
                       // <ShimmerEffect />
                       <TableBody>
                         {eData &&
-                          eData.map((item) => (
-                            <tr key={item._id}>
+                          eData.map((item, index) => (
+                            <tr key={index}>
                               <TableData title={i++} />
                               <TableData
                                 onclick={() => openDrawer(item)}
@@ -577,6 +577,7 @@ const AddOfficeRole = ({ page }) => {
           isOpen={isOpen}
           onHandleCloseModal={onHandleCloseModal}
           btnName={editId ? "Edit Employe" : "Add Employe"}
+          id={initialValue?._id}
         />
       )}
       {drawer && (
@@ -592,6 +593,7 @@ const AddOfficeRole = ({ page }) => {
 };
 
 const OfficeEmployeModel = ({
+  id,
   updatedRoleField,
   setResetFlag,
   onSubmit,
@@ -630,6 +632,7 @@ const OfficeEmployeModel = ({
               onSubmit={onSubmit}
               resetFlag={resetFlag}
               btnName={btnName}
+              id={id}
             />
           </div>
           {/* {error && (

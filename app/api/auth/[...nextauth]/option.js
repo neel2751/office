@@ -1,8 +1,8 @@
-import { LoginData } from "@/actions/authAction.js/authAction";
+import { LoginData, storeSession } from "@/actions/authAction.js/authAction";
 import { connect } from "@/dbConfig/dbConfig";
 import RoleModel from "@/models/roleModel";
+import axios from "axios";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { toast } from "react-toastify";
 
 export const options = {
   providers: [
@@ -12,20 +12,12 @@ export const options = {
       name: "Custom Sign In",
       credentials: {},
       async authorize(credentials, req) {
-        const ip = req.headers["x-forwarded-for"];
-        const device = req.headers["user-agent"] || "";
+        // const ip = req.headers["x-forwarded-for"];
+        // const device = req.headers["user-agent"] || "";
         const platform = req.headers["sec-ch-ua-platform"] || "";
         const isMobile = req.headers["sec-ch-ua-mobile"] === '"?1"';
-        // const chrome = req.headers["sec-ch-ua"] && /Google Chrome\/(\d+)/.exec(req.headers["sec-ch-ua"]);
         const browser = req.headers["sec-ch-ua"];
-        // if (!ip || !device || !platform) return false;
-        console.log("platform", platform);
-        console.log("browser", browser);
-        console.log("isMobile", isMobile);
-        console.log("ip :>> ", ip);
-        console.log("device :>> ", device);
 
-        // console.log(credentials);
         try {
           if (!credentials || !credentials.email || !credentials.password) {
             return null; // Return null if credentials are invalid
@@ -38,7 +30,18 @@ export const options = {
           // console.log(req.headers["user-agent"] || "");
           const response = await LoginData(email, password);
           if (response.status) {
-            return { ...response.data, callbackUrl };
+            const newip = await axios.get("http://ip-api.com/json/");
+            if (newip.status === 200) {
+              const data = await storeSession({
+                ...newip.data,
+                ...response.data,
+                platform,
+                browser,
+                device: isMobile ? "Mobile" : "Desktop",
+              });
+              if (!data.status) throw new Error(data.message);
+              return { ...response.data, callbackUrl };
+            }
           } else {
             throw new Error(response.message);
           }

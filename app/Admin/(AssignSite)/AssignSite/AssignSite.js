@@ -6,8 +6,6 @@ import {
   TableBody,
   TableData,
   TableDataStatus,
-  TableHead,
-  TableHeading,
   TableTH,
 } from "@/components/Table";
 import { TableSiteStatus } from "@/components/Table/Table";
@@ -32,6 +30,7 @@ import {
 } from "@/actions/assignSiteAction/assignSiteAction";
 import { changeDateToString } from "@/actions/commonAction/commonAction";
 import { useDebounce } from "@/helper/debounceHelper";
+import { Breadcrumbs } from "@/components/ChangePassword/ChnagePassword";
 
 const AssignSite = ({ page }) => {
   const [search, setSearch] = useState("");
@@ -160,12 +159,18 @@ const AssignSite = ({ page }) => {
   return (
     <div className="h-full w-full mt-16 bg-gray-50 relative overflow-y-auto lg:ml-64">
       {/* Header */}
+      <Breadcrumbs
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          {
+            label: `${page.split("/")[2]}s`,
+            href: `${page.split("/")[2]}`,
+            active: true,
+          },
+        ]}
+      />
       <div className="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div className="mb-1 w-full">
-          <TableHeading
-            title={`All ${page.split("/")[2]}`}
-            slug={`All ${page.split("/")[2]}`}
-          />
           <div className="sm:flex">
             <div className="sm:flex items-center sm:divide-x sm:divide-gray-100 mb-3 sm:mb-0">
               <Search
@@ -179,7 +184,7 @@ const AssignSite = ({ page }) => {
                 cls={
                   "w-1/2 sm:w-auto text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200"
                 }
-                btnName={`Add ${page.split("/")[2]}`}
+                btnName={`${page.split("/")[2]}`}
                 handleClick={handleOpenNewModel}
               />
               <TableAction

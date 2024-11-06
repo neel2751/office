@@ -7,6 +7,8 @@ import SiteAssignModel from "@/models/siteAssignModel";
 import AttendanceModel from "@/models/attendanceModel";
 import EmployeModel from "@/models/employeeModel";
 import mongoose from "mongoose";
+import ProjectSiteModel from "@/models/siteProjectModel";
+import SiteProject from "@/app/Admin/(SiteProject)/SiteProject/siteProject";
 
 export const handleAssignSite = async (id, data) => {
   if (!data) return { status: false, message: "No data provided" };
@@ -445,6 +447,232 @@ export const totalCostOfSite = async (siteId) => {
     // we have to find Total employee Cost for Particular site
     const employeeCost = await AttendanceModel.aggregate(pipeline);
     return JSON.stringify(employeeCost[0]);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getTotalCostMonthWise = async (siteId) => {
+  const pipeline = [
+    {
+      $match: {
+        siteId: new mongoose.Types.ObjectId(siteId),
+      }, // Match the siteId
+    },
+    {
+      $unwind: "$employeAttendance", // Unwind the employeeAttendance array
+    },
+    {
+      $facet: {
+        employeeWiseTotals: [
+          {
+            $lookup: {
+              from: "employes",
+              localField: "employeAttendance.employeeId",
+              foreignField: "_id",
+              as: "employes",
+            },
+          },
+          { $unwind: "$employes" },
+          {
+            $group: {
+              _id: "$employeAttendance.employeeId", // Group by employeeId for employee-wise results
+              firstName: { $first: "$employes.firstName" },
+              lastName: { $first: "$employes.lastName" },
+              totalHours: { $sum: "$employeAttendance.hours" }, // Sum total hours for each employee
+              totalBreakHours: {
+                $sum: "$employeAttendance.breakHours",
+              }, // Sum total break hours for each employee
+              totalPay: { $sum: "$employeAttendance.totalPay" }, // Sum total pay for each employee
+              totalExtraHours: {
+                $sum: "$employeAttendance.extraHours",
+              }, // Sum total extra hours for each employee
+              totalAttendanceHours: {
+                $sum: "$employeAttendance.totalHours",
+              }, // Sum total attendance hours for each employee
+            },
+          },
+          {
+            $sort: { totalPay: -1 },
+          },
+        ],
+        overallTotal: [
+          {
+            $group: {
+              _id: null,
+              allEmployeeTotalHours: {
+                $sum: "$employeAttendance.hours",
+              }, // Sum total hours for all employees
+              allEmployeeTotalBreakHours: {
+                $sum: "$employeAttendance.breakHours",
+              }, // Sum total break hours for all employees
+              allEmployeeTotalPay: {
+                $sum: "$employeAttendance.totalPay",
+              }, // Sum total pay for all employees
+              allEmployeeTotalExtraHours: {
+                $sum: "$employeAttendance.extraHours",
+              }, // Sum total extra hours for all employees
+              allEmployeeTotalAttendanceHours: {
+                $sum: "$employeAttendance.totalHours",
+              }, // Sum total attendance hours for all employees
+            },
+          },
+        ],
+        monthWiseTotals: [
+          {
+            $group: {
+              _id: {
+                year: { $year: "$employeAttendance.aDate" }, // Extract the current year
+                month: {
+                  $toUpper: {
+                    $dateToString: {
+                      format: "%b",
+                      date: "$employeAttendance.aDate",
+                    },
+                  },
+                }, // Get month name like "JAN"
+              },
+              totalCost: { $sum: "$employeAttendance.totalPay" },
+              totalHours: { $sum: "$employeAttendance.totalHours" },
+            },
+          },
+          {
+            $sort: { "_id.month": 1 }, // Sort by month in ascending order
+          },
+        ],
+      },
+    },
+    // Add default months with zero totals if they are missing
+    {
+      $project: {
+        employeeWiseTotals: 1,
+        overallTotal: 1,
+        monthWiseTotals: {
+          $map: {
+            input: [
+              { month: "JAN", totalCost: 0, totalHours: 0 },
+              { month: "FEB", totalCost: 0, totalHours: 0 },
+              { month: "MAR", totalCost: 0, totalHours: 0 },
+              { month: "APR", totalCost: 0, totalHours: 0 },
+              { month: "MAY", totalCost: 0, totalHours: 0 },
+              { month: "JUN", totalCost: 0, totalHours: 0 },
+              { month: "JUL", totalCost: 0, totalHours: 0 },
+              { month: "AUG", totalCost: 0, totalHours: 0 },
+              { month: "SEP", totalCost: 0, totalHours: 0 },
+              { month: "OCT", totalCost: 0, totalHours: 0 },
+              { month: "NOV", totalCost: 0, totalHours: 0 },
+              { month: "DEC", totalCost: 0, totalHours: 0 },
+            ],
+            as: "month",
+            in: {
+              month: "$$month.month",
+              totalCost: {
+                $cond: {
+                  if: {
+                    $in: [
+                      "$$month.month",
+                      {
+                        $map: {
+                          input: "$monthWiseTotals",
+                          as: "m",
+                          in: "$$m._id.month",
+                        },
+                      },
+                    ],
+                  },
+                  then: {
+                    $let: {
+                      vars: {
+                        match: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: "$monthWiseTotals",
+                                as: "m",
+                                cond: {
+                                  $eq: ["$$m._id.month", "$$month.month"],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: "$$match.totalCost",
+                    },
+                  },
+                  else: 0,
+                },
+              },
+              totalHours: {
+                $cond: {
+                  if: {
+                    $in: [
+                      "$$month.month",
+                      {
+                        $map: {
+                          input: "$monthWiseTotals",
+                          as: "m",
+                          in: "$$m._id.month",
+                        },
+                      },
+                    ],
+                  },
+                  then: {
+                    $let: {
+                      vars: {
+                        match: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: "$monthWiseTotals",
+                                as: "m",
+                                cond: {
+                                  $eq: ["$$m._id.month", "$$month.month"],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: "$$match.totalHours",
+                    },
+                  },
+                  else: 0,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+
+  const employeeCost = await AttendanceModel.aggregate(pipeline);
+  return JSON.stringify(employeeCost[0]);
+};
+
+export const assignSiteDetail = async (siteId) => {
+  try {
+    const siteDetail = await AssignProjectModel.findOne({
+      projectSiteID: siteId,
+    })
+      .populate({ path: "projectSiteID" })
+      .populate({
+        path: "roleId",
+        select: { name: 1, email: 1, isActive: 1, _id: 1 },
+      })
+      .lean();
+    if (siteDetail) {
+      return JSON.stringify(siteDetail);
+    } else {
+      const siteDetail = await ProjectSiteModel.findOne({ _id: siteId });
+      if (siteDetail) {
+        const data = { projectSiteID: siteDetail };
+        return JSON.stringify(data);
+      }
+    }
   } catch (error) {
     console.log(error);
   }

@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import {
-  DatePicker,
   DatePickerTest,
   Select,
   TextFormInput,
@@ -9,7 +8,7 @@ import {
 } from "../fromInput/FormInput";
 import UseFormFields from "./useFormField";
 import SearchableSelect from "../SearchSelect/Select";
-import { Controller, get } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 //  This component is responsible for rendering a all form field  and managing its state using useFormFields hook.
 const NewFormModel = ({
@@ -83,143 +82,151 @@ const NewFormModel = ({
 
 export default NewFormModel;
 
-export const ReactHookForm = ({
-  id,
-  fields,
-  initialValues,
-  onSubmit,
-  btnName,
-  editBtnName,
-  resetFlag,
-  setResetFlag,
-}) => {
-  const { handleSubmit, fieldProps, errors, reset, setValue, control } =
-    UseFormFields(fields, initialValues);
+export const ReactHookForm = memo(
+  ({
+    id,
+    fields,
+    initialValues,
+    onSubmit,
+    btnName,
+    editBtnName,
+    resetFlag,
+    setResetFlag,
+    isLast,
+    children,
+  }) => {
+    const { handleSubmit, fieldProps, errors, reset, setValue, control } =
+      UseFormFields(fields, initialValues);
 
-  useEffect(() => {
-    if (resetFlag) {
-      reset();
-    }
-    setResetFlag(false);
-  }, [resetFlag]);
-
-  const getSelectLabel = (fieldName) => {
-    if (initialValues) {
-      if (fieldName === "projectSiteID" && initialValues.projectSiteID) {
-        return initialValues.projectSiteID.siteName;
-      } else if (fieldName === "roleType" && initialValues.roleType) {
-        return initialValues.roleType.roleTitle;
-      } else if (fieldName === "roleId" && initialValues.roleId) {
-        return initialValues.roleId.name;
+    useEffect(() => {
+      if (resetFlag) {
+        reset();
       }
-    }
-    return ""; // Default value if no match
-  };
-  const getSelectValue = (fieldName) => {
-    if (initialValues) {
-      if (fieldName === "projectSiteID" && initialValues.projectSiteID) {
-        return initialValues.projectSiteID._id;
-      } else if (fieldName === "roleType" && initialValues.roleType) {
-        return initialValues.roleType._id;
-      } else if (fieldName === "roleId" && initialValues.roleId) {
-        return initialValues.roleId._id;
-      }
-    }
-    return ""; // Default value if no match
-  };
+      setResetFlag(false);
+    }, [resetFlag]);
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
-      <div className="grid grid-cols-6 gap-6">
-        {fields.map((ifield, index) => (
-          <div
-            key={index}
-            className={`col-span-6 ${
-              ifield.size ? "sm:col-span-6" : "sm:col-span-3"
-            }`}
+    const getSelectLabel = (fieldName) => {
+      if (initialValues) {
+        if (fieldName === "projectSiteID" && initialValues.projectSiteID) {
+          return initialValues.projectSiteID.siteName;
+        } else if (fieldName === "roleType" && initialValues.roleType) {
+          return initialValues.roleType.roleTitle;
+        } else if (fieldName === "roleId" && initialValues.roleId) {
+          return initialValues.roleId.name;
+        }
+      }
+      return ""; // Default value if no match
+    };
+    const getSelectValue = (fieldName) => {
+      if (initialValues) {
+        if (fieldName === "projectSiteID" && initialValues.projectSiteID) {
+          return initialValues.projectSiteID._id;
+        } else if (fieldName === "roleType" && initialValues.roleType) {
+          return initialValues.roleType._id;
+        } else if (fieldName === "roleId" && initialValues.roleId) {
+          return initialValues.roleId._id;
+        }
+      }
+      return ""; // Default value if no match
+    };
+
+    return (
+      <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
+        <div className="grid grid-cols-6 gap-6">
+          {fields.map((ifield, index) => (
+            <div
+              key={index}
+              className={`col-span-6 ${
+                ifield.size ? "sm:col-span-6" : "sm:col-span-3"
+              }`}
+            >
+              {ifield.type === "date" && (
+                <Controller
+                  control={control}
+                  name={ifield.name}
+                  render={({ field }) => (
+                    <DatePickerTest
+                      cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
+                      name={ifield.name}
+                      errors={errors}
+                      control={control}
+                      labelText={ifield.labelText}
+                      placeholder={ifield.placeholder}
+                      errorMsg={errors[ifield.name]?.message}
+                      {...field}
+                    />
+                  )}
+                />
+              )}
+              {ifield.type === "select" && (
+                // Render select input
+                <Select
+                  cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
+                  {...fieldProps[ifield.name]}
+                  options={ifield.options}
+                  label={ifield.labelText}
+                  errorMsg={errors[ifield.name] && errors[ifield.name].message}
+                />
+              )}
+              {ifield.isSearch && (
+                <SearchableSelect
+                  {...fieldProps[ifield.name]}
+                  cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
+                  options={ifield.options}
+                  errorMsg={errors[ifield.name] && errors[ifield.name].message}
+                  labelText={ifield.labelText}
+                  selectLable={getSelectLabel(ifield.name)}
+                  setValue={getSelectValue(ifield.name)}
+                  onSelect={(op) =>
+                    setValue(ifield.name, op.code, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
+              )}
+              {(ifield.type === "text" ||
+                ifield.type === "number" ||
+                ifield.type === "email" ||
+                ifield.type === "password") && (
+                <TextFormInput
+                  {...fieldProps[ifield.name]}
+                  cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
+                  type={ifield.type}
+                  inputMode={ifield.inputMode || "text"}
+                  labelText={ifield.labelText}
+                  placeholder={ifield.placeholder}
+                  errorMsg={errors[ifield.name] && errors[ifield.name].message}
+                  helperText={ifield.helperText}
+                />
+              )}
+              {ifield.type === "textarea" && ifield.isLast && children}
+              {ifield.type === "textarea" && (
+                <Textarea
+                  {...fieldProps[ifield.name]}
+                  cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
+                  rows={3}
+                  helperText={ifield.helperText}
+                  labelText={ifield.labelText}
+                  placeholder={ifield.placeholder}
+                  errorMsg={errors[ifield.name] && errors[ifield.name].message}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        {isLast && children}
+        {/* Modal footer */}
+        <div className="items-center py-5 border-gray-200 rounded-b">
+          {/* <Button>{id ? "Update" : "Create"}</Button> */}
+
+          <button
+            className="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            type="submit"
           >
-            {ifield.type === "date" && (
-              <Controller
-                control={control}
-                name={ifield.name}
-                render={({ field }) => (
-                  <DatePickerTest
-                    cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
-                    name={ifield.name}
-                    errors={errors}
-                    control={control}
-                    labelText={ifield.labelText}
-                    placeholder={ifield.placeholder}
-                    errorMsg={errors[ifield.name]?.message}
-                    {...field}
-                  />
-                )}
-              />
-            )}
-            {ifield.type === "select" && (
-              // Render select input
-              <Select
-                cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
-                {...fieldProps[ifield.name]}
-                options={ifield.options}
-                label={ifield.labelText}
-                errorMsg={errors[ifield.name] && errors[ifield.name].message}
-              />
-            )}
-            {ifield.isSearch && (
-              <SearchableSelect
-                {...fieldProps[ifield.name]}
-                cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
-                options={ifield.options}
-                errorMsg={errors[ifield.name] && errors[ifield.name].message}
-                labelText={ifield.labelText}
-                selectLable={getSelectLabel(ifield.name)}
-                setValue={getSelectValue(ifield.name)}
-                onSelect={(op) =>
-                  setValue(ifield.name, op.code, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-            )}
-            {(ifield.type === "text" ||
-              ifield.type === "number" ||
-              ifield.type === "email" ||
-              ifield.type === "password") && (
-              <TextFormInput
-                {...fieldProps[ifield.name]}
-                cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
-                type={ifield.type}
-                inputMode={ifield.inputMode || "text"}
-                labelText={ifield.labelText}
-                placeholder={ifield.placeholder}
-                errorMsg={errors[ifield.name] && errors[ifield.name].message}
-                helperText={ifield.helperText}
-              />
-            )}
-            {ifield.type === "textarea" && (
-              <Textarea
-                {...fieldProps[ifield.name]}
-                cls={`${errors[ifield.name] ? "border-red-500" : ""}`}
-                rows={3}
-                helperText={ifield.helperText}
-                labelText={ifield.labelText}
-                placeholder={ifield.placeholder}
-                errorMsg={errors[ifield.name] && errors[ifield.name].message}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-      {/* Modal footer */}
-      <div className="items-center py-5 border-gray-200 rounded-b">
-        <button
-          className="text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-          type="submit"
-        >
-          {id ? editBtnName : btnName}
-        </button>
-      </div>
-    </form>
-  );
-};
+            {id ? editBtnName : btnName || "Submit"}
+          </button>
+        </div>
+      </form>
+    );
+  }
+);

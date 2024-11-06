@@ -122,7 +122,7 @@ export const DateRangeInput = ({ employeId }) => {
         ]}
       />
       <div className="flex flex-col mt-2 px-3 py-2 gap-x-2 items-start gap-2">
-        <div className="flex  gap-2">
+        <div className="flex gap-2">
           <ReactDatePicker
             disabled={loading} // Disable date picker when loading
             className="text-neutral-700 p-2 w-[15rem] ring-neutral-300 rounded ring-2 text-center focus:ring-cyan-600 outline-none"
